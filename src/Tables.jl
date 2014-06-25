@@ -1,5 +1,8 @@
 module Tables
+    using DataArrays
+    using NamedArrays
 
-# package code goes here
+    include("freqtable.jl")
 
+    export freqtable
 end # module
