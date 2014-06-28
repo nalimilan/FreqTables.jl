@@ -1,7 +1,10 @@
 import Base.ht_keyindex
 
 function freqtable(x::AbstractVector...;
-                   weights::Union(Nothing, AbstractVector{Number}) = nothing,
+                   # Parametric unions are currently not supported for keyword arguments,
+                   # so weights are restricted to Float64 for now
+                   # https://github.com/JuliaLang/julia/issues/3738
+                   weights::Union(Nothing, AbstractVector{Float64}) = nothing,
                    subset::Union(Nothing, AbstractVector{Int}, AbstractVector{Bool}) = nothing)
     if subset != nothing
         x = [y[subset] for y in x]
@@ -25,13 +28,10 @@ function freqtable(x::AbstractVector...;
         error("'weights' (length $(length(weights))) must be of the same length as vectors (length $(l[1]))")
     end
 
-    if weights == nothing
-        d = Dict{tuple(vtypes...), Int}()
-    else
-        d = Dict{tuple(vtypes...), eltype(weights)}()
-    end
+    counttype = weights == nothing ? Int : eltype(weights)
+    d = Dict{tuple(vtypes...), counttype}()
 
-    for el in zip(x...)
+    for (i, el) in enumerate(zip(x...))
         index = ht_keyindex(d, el)
 
         if weights == nothing
@@ -62,7 +62,7 @@ function freqtable(x::AbstractVector...;
         dimnames[i] = sort!(unique(s))
     end
 
-    a = zeros(Int, ntuple(n, i -> length(dimnames[i])))
+    a = zeros(counttype, ntuple(n, i -> length(dimnames[i])))
     na = NamedArray(a, ntuple(n, i -> dimnames[i]), ntuple(n, i -> "Dim$i"))
 
     for (k, v) in d
@@ -73,7 +73,10 @@ function freqtable(x::AbstractVector...;
 end
 
 function freqtable2(x::AbstractVector...;
-                    weights::Union(Nothing, AbstractVector{Number}) = nothing,
+                    # Parametric unions are currently not supported for keyword arguments,
+                    # so weights are restricted to Float64 for now
+                    # https://github.com/JuliaLang/julia/issues/3738
+                    weights::Union(Nothing, AbstractVector{Float64}) = nothing,
                     subset::Union(Nothing, AbstractVector{Int}, AbstractVector{Bool}) = nothing)
     if subset != nothing
         x = [y[subset] for y in x]

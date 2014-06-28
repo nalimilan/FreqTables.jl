@@ -35,4 +35,12 @@ a           3 2
 b           3 2
 c           2 3
 d           2 3
-``
+
+julia> show(freqtable(x, y, subset=1:20, weights=repeat([1, .5], outer=[10])))
+4x2 NamedArray{Float64,2}
+Dim1 \ Dim2 A   B  
+a           3.0 2.0
+b           1.5 1.0
+c           2.0 3.0
+d           1.0 1.5
+```

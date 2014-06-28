@@ -11,6 +11,13 @@ y = repeat(["A", "B", "C", "D"], inner=[10], outer=[10]);
                                 20 30 20 30;
                                 20 30 20 30]
 
+@test freqtable(x, y,
+                subset=1:20,
+                weights=repeat([1, .5], outer=[10])).array == [3.0 2.0
+                                                               1.5 1.0
+                                                               2.0 3.0
+                                                               1.0 1.5]
+
 
 using DataArrays
 xpda = PooledDataArray(x)
