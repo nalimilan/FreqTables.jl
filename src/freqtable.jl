@@ -144,24 +144,27 @@ function freqtable(x::PooledDataVector...; usena::Bool = false)
 
 	if usena
         dims = ntuple(n, i -> length(lev[i]) + 1)
-        nalev = Int[dim + 1 for dim in dims]
-	    sizes = cumprod(nalev)
+	    sizes = cumprod([dims...])
 	    a = zeros(Int, dims)
 
 	    for i in 1:len[1]
 	        el = int(x[1].refs[i])::Int
 
+            if el == 0
+	            el = dims[1]
+	        end
+
 	        for j in 2:n
 	            val = int(x[j].refs[i])::Int
 
 	            if val == zero(val)
-	                val = nalev[j]
+	                val = dims[j]
 	            end
 
 	            el += int((val - 1) * sizes[j - 1])::Int
 	        end
 
-	        @inbounds a[el] += 1
+	        a[el] += 1
 	    end
 
 	    NamedArray(a, ntuple(n, i -> [lev[i], "NA"]), ntuple(n, i -> "Dim$i"))
