@@ -14,6 +14,6 @@ before_install:
   - sudo apt-get install libpcre3-dev julia -y
 script:
   - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir("Tables"))`); Pkg.pin("Tables"); Pkg.resolve()'
-  - julia --code-coverage ./tests/runtests.jl
+  - julia --code-coverage ./test/runtests.jl
 after_success:
   - julia -e 'cd(Pkg.dir("Tables")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
