@@ -4,10 +4,10 @@ function freqtable(x::AbstractVector...;
                    weights::Union(Nothing, AbstractVector{Number}) = nothing,
                    subset::Union(Nothing, AbstractVector{Int}, AbstractVector{Bool}) = nothing)
     if subset != nothing
-        x = [sub(y, subset) for y in x]
+        x = [y[subset] for y in x]
 
         if weights != nothing
-            weights = sub(weights, subset)
+            weights = weights[subset]
         end
     end
 
@@ -26,9 +26,9 @@ function freqtable(x::AbstractVector...;
     end
 
     if weights == nothing
-        d = Dict{vtypes, Int}()
+        d = Dict{tuple(vtypes...), Int}()
     else
-        d = Dict{vtypes, eltype(weights)}()
+        d = Dict{tuple(vtypes...), eltype(weights)}()
     end
 
     for el in zip(x...)
@@ -76,10 +76,10 @@ function freqtable2(x::AbstractVector...;
                     weights::Union(Nothing, AbstractVector{Number}) = nothing,
                     subset::Union(Nothing, AbstractVector{Int}, AbstractVector{Bool}) = nothing)
     if subset != nothing
-        x = [sub(y, subset) for y in x]
+        x = [y[subset] for y in x]
 
         if weights != nothing
-            weights = sub(weights, subset)
+            weights = weights[subset]
         end
     end
 
