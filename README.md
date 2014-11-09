@@ -5,12 +5,14 @@
 Installation
 ------------
 
-    julia> Pkg.clone("git://github.com/nalimilan/Tables.jl.git")
+```julia
+julia> Pkg.clone("git://github.com/nalimilan/Tables.jl.git")
+```
 
 Usage
 -----
 
-```jlcon
+```julia
 julia> using Tables
 julia> x = repeat(["a", "b", "c", "d"], outer=[100]);
 julia> y = repeat(["A", "B", "C", "D"], inner=[10], outer=[10]);
