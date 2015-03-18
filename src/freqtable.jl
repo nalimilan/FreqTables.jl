@@ -199,3 +199,16 @@ function freqtable(x::PooledDataVector...; usena::Bool = false)
 	    NamedArray(a, ntuple(n, i -> lev[i]), ntuple(n, i -> "Dim$i"))
 	end
 end
+
+@require DataFrames begin
+
+    using DataFrames
+
+    function Tables.freqtable(x::DataFrame, columns::Symbol...)
+        cols = [x[i] for i in columns]
+        t = freqtable(cols...)
+        setdimnames!(t, columns)
+        t
+    end
+
+end
