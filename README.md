@@ -1,19 +1,19 @@
-# Tables
+# FreqTables
 
-[![Build Status](https://travis-ci.org/nalimilan/Tables.jl.svg?branch=master)](https://travis-ci.org/nalimilan/Tables.jl)
+[![Build Status](https://travis-ci.org/nalimilan/FreqTables.jl.svg?branch=master)](https://travis-ci.org/nalimilan/FreqTables.jl)
 
 Installation
 ------------
 
 ```julia
-julia> Pkg.clone("git://github.com/nalimilan/Tables.jl.git")
+julia> Pkg.clone("git://github.com/nalimilan/FreqTables.jl.git")
 ```
 
 Usage
 -----
 
 ```julia
-julia> using Tables
+julia> using FreqTables
 julia> x = repeat(["a", "b", "c", "d"], outer=[100]);
 julia> y = repeat(["A", "B", "C", "D"], inner=[10], outer=[10]);
 julia> show(freqtable(x))
