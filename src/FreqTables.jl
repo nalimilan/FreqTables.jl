@@ -1,4 +1,4 @@
-module Tables
+module FreqTables
     using DataArrays
     using NamedArrays
 
