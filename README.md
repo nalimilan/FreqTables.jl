@@ -46,5 +46,27 @@ a           3.0 2.0
 b           1.5 1.0
 c           2.0 3.0
 d           1.0 1.5
+```
 
+For convenience, when working with a data frame, one can also specify only the `DataFrame` object and columns as symbols:
+```julia
+julia> using RDatasets
+
+julia> iris = dataset("datasets", "iris");
+
+julia> iris[:LongSepal] = iris[:SepalLength] .> 5.0;
+
+julia> freqtable(iris, :Species, :LongSepal)
+3x2 NamedArrays.NamedArray{Int64,2,Array{Int64,2},Tuple{Dict{ASCIIString,Int64},Dict{Bool,Int64}}}
+Species \ LongSepal false true 
+setosa              28    22   
+versicolor          3     47   
+virginica           1     49   
+
+julia> freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 10.0)
+3x2 NamedArrays.NamedArray{Int64,2,Array{Int64,2},Tuple{Dict{ASCIIString,Int64},Dict{Bool,Int64}}}
+Species \ LongSepal false true 
+setosa              28    22   
+versicolor          3     47   
+virginica           1     49   
 ```

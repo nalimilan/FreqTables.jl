@@ -263,3 +263,9 @@ function freqtable(x::AbstractVector;
 
     na
 end
+
+function freqtable(d::DataFrame, x::Symbol...; args...)
+    a = freqtable([d[y] for y in x]...; args...)
+    setdimnames!(a, x)
+    a
+end
