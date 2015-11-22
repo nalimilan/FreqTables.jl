@@ -1,4 +1,4 @@
-using Tables
+using FreqTables
 using Base.Test
 
 x = repeat(["a", "b", "c", "d"], outer=[100]);
