@@ -63,10 +63,9 @@ setosa              28    22
 versicolor          3     47   
 virginica           1     49   
 
-julia> freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 10.0)
-3x2 NamedArrays.NamedArray{Int64,2,Array{Int64,2},Tuple{Dict{ASCIIString,Int64},Dict{Bool,Int64}}}
+julia> freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
+2x2 NamedArrays.NamedArray{Int64,2,Array{Int64,2},Tuple{Dict{ASCIIString,Int64},Dict{Bool,Int64}}}
 Species \ LongSepal false true 
 setosa              28    22   
-versicolor          3     47   
-virginica           1     49   
+versicolor          3     8    
 ```

@@ -47,3 +47,14 @@ ypda[[1, 10, 20, 400]] = NA
                                                   20 30 20 30 0;
                                                   20 29 20 29 2;
                                                   0 0 0 0 1]
+
+
+using RDatasets
+iris = dataset("datasets", "iris")
+iris[:LongSepal] = iris[:SepalLength] .> 5.0
+@test freqtable(iris, :Species, :LongSepal).array == [28 22
+                                                       3 47
+                                                       1 49]
+@test freqtable(iris, :Species, :LongSepal,
+                subset=iris[:PetalLength] .< 4.0).array ==[28 22
+                                                            3  8]
