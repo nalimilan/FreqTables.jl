@@ -73,66 +73,6 @@ function freqtable(x::AbstractVector...;
     na
 end
 
-function freqtable2(x::AbstractVector...;
-                    # Parametric unions are currently not supported for keyword arguments,
-                    # so weights are restricted to Float64 for now
-                    # https://github.com/JuliaLang/julia/issues/3738
-                    weights::Union{Void, AbstractVector{Float64}} = nothing,
-                    subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
-    if subset != nothing
-        x = ntuple(i -> x[i][subset], n)
-
-        if weights != nothing
-            weights = weights[subset]
-        end
-    end
-
-    n = length(x)
-    l = map(length, x)
-
-    for i in 1:n
-        if l[1] != l[i]
-            error("arguments are not of the same length: $l")
-        end
-    end
-
-    if weights != nothing && length(weights) != l[1]
-        error("'weights' (length $(length(weights))) must be of the same length as vectors (length $(l[1]))")
-    end
-
-    d = [Array(t, 0) for t in typeof(x)]
-
-    if weights == nothing
-        counts = Array(Int, 0)
-    else
-        counts = Array(eltype(weights), 0)
-    end
-
-    a = Array(Int, ntuple(_ -> 0, n))
-    el = cell(n)
-
-    for i in 1:l[1]
-        for j in 1:n
-            @inbounds dj = d[j]
-            @inbounds xji = x[j][i]
-
-            pos = findfirst(dj, xji)
-
-            if pos == 0
-                push!(dj, xji)
-                a = cat(j, a, zeros(Int, ntuple(k -> k == j ? 1 : size(a, k), n)))
-                pos = length(dj)
-            end
-
-            @inbounds el[j] = pos
-        end
-
-        @inbounds a[el...] += 1
-    end
-
-    NamedArray(a, ntuple(i -> d[i], n), ntuple(i -> "Dim$i", n))
-end
-
 function freqtable(x::PooledDataVector...; usena::Bool = false)
 	n = length(x)
 	len = [length(y) for y in x]
