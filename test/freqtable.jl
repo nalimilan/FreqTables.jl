@@ -58,3 +58,7 @@ iris[:LongSepal] = iris[:SepalLength] .> 5.0
 @test freqtable(iris, :Species, :LongSepal,
                 subset=iris[:PetalLength] .< 4.0).array ==[28 22
                                                             3  8]
+
+# Issue #5
+@test freqtable([Set(1), Set(2)]).array == [1, 1]
+@test freqtable([Set(1), Set(2)], [Set(1), Set(2)]).array == eye(2)

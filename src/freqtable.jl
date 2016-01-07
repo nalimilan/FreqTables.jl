@@ -60,7 +60,12 @@ function freqtable(x::AbstractVector...;
         for j in 1:length(k)
             push!(s, k[j][i])
         end
-        dimnames[i] = sort!(unique(s))
+
+        dimnames[i] = unique(s)
+        T = eltype(dimnames[i])
+        if method_exists(isless, (T, T))
+            sort!(dimnames[i])
+        end
     end
 
     a = zeros(counttype, ntuple(i -> length(dimnames[i]), n))
@@ -192,7 +197,12 @@ function freqtable(x::AbstractVector;
     for j in 1:length(k)
         push!(s, k[j])
     end
-    dimnames = sort!(unique(s))
+
+    dimnames = unique(s)
+    T = eltype(dimnames)
+    if method_exists(isless, (T, T))
+        sort!(dimnames)
+    end
 
     a = zeros(counttype, length(dimnames))
     na = NamedArray(a, (dimnames,), ("Dim1",))
