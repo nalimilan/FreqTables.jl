@@ -5,15 +5,11 @@
 [![FreqTables](http://pkg.julialang.org/badges/FreqTables_0.4.svg)](http://pkg.julialang.org/?pkg=FreqTables&ver=0.4)
 [![FreqTables](http://pkg.julialang.org/badges/FreqTables_0.5.svg)](http://pkg.julialang.org/?pkg=FreqTables&ver=0.5)
 
-Installation
-------------
+This package allows computing one- or multi-way frequency tables (a.k.a. contingency or pivot tables) from
+any type of vector or array. It includes support for [`PooledDataArray`s](https://github.com/JuliaStats/DataArrays.jl)
+and [`DataFrame`s](https://github.com/JuliaStats/DataFrames.jl/), as well as for weighted counts.
 
-```julia
-julia> Pkg.clone("git://github.com/nalimilan/FreqTables.jl.git")
-```
-
-Usage
------
+Tables are represented as [`NamedArray`](https://github.com/davidavdav/NamedArrays.jl/) objects.
 
 ```julia
 julia> using FreqTables
@@ -51,7 +47,7 @@ c           2.0 3.0
 d           1.0 1.5
 ```
 
-For convenience, when working with a data frame, one can also specify only the `DataFrame` object and columns as symbols:
+For convenience, when working with a data frame, one can also pass the `DataFrame` object and columns as symbols:
 ```julia
 julia> using RDatasets
 
