@@ -1,19 +1,33 @@
 import Base.ht_keyindex
 
-# Internal function needed for now so that n is inferred
-function _freqtable{n}(x::NTuple{n},
-                       weights::Union{Void, AbstractVector{Float64}} = nothing,
-                       subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
-    if subset != nothing
-        x = map(y -> y[subset], x)
+# Cf. https://github.com/JuliaStats/StatsBase.jl/issues/135
+immutable UnitWeights <: AbstractVector{Int}
+end
+Base.getindex(w::UnitWeights, ::Integer...) = 1
+Base.getindex(w::UnitWeights, ::AbstractVector) = w
 
-        if weights != nothing
-            weights = weights[subset]
-        end
+# @pure only exists in Julia 0.5
+if isdefined(Base, Symbol("@pure"))
+    import Base.@pure
+else
+    macro pure(x) esc(x) end
+end
+
+# About the type inference limitation which prompts this workaround, see
+# https://github.com/JuliaLang/julia/issues/10880
+@pure eltypes(T) = Tuple{map(eltype, T.parameters)...}
+
+# Internal function needed for now so that n is inferred
+function _freqtable{n,T<:Real}(x::NTuple{n},
+                               weights::AbstractVector{T} = UnitWeights(),
+                               subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
+    if !isa(subset, Void)
+        x = map(y -> y[subset], x)
+        weights = weights[subset]
     end
 
     l = map(length, x)
-    vtypes = map(eltype, typeof(x).parameters)
+    vtypes = eltypes(typeof(x))
 
     for i in 1:n
         if l[1] != l[i]
@@ -21,30 +35,19 @@ function _freqtable{n}(x::NTuple{n},
         end
     end
 
-    if weights != nothing && length(weights) != l[1]
+    if !isa(weights, UnitWeights) && length(weights) != l[1]
         error("'weights' (length $(length(weights))) must be of the same length as vectors (length $(l[1]))")
     end
 
-    counttype = weights == nothing ? Int : eltype(weights)
-    d = Dict{Tuple{vtypes...}, counttype}()
+    d = Dict{vtypes, eltype(weights)}()
 
     for (i, el) in enumerate(zip(x...))
         index = ht_keyindex(d, el)
 
-        if weights == nothing
-            if index > 0
-                d.vals[index] += 1
-            else
-                d[el] = 1
-            end
+        if index > 0
+            @inbounds d.vals[index] += weights[i]
         else
-            @inbounds w = weights[i]
-
-            if index > 0
-                d.vals[index] += w
-            else
-                d[el] = w
-            end
+            @inbounds d[el] = weights[i]
         end
     end
 
@@ -52,20 +55,20 @@ function _freqtable{n}(x::NTuple{n},
 
     dimnames = cell(n)
     for i in 1:n
-        s = Set{vtypes[i]}()
+        s = Set{vtypes.parameters[i]}()
         for j in 1:length(k)
             push!(s, k[j][i])
         end
 
         dimnames[i] = unique(s)
-        T = eltype(dimnames[i])
-        if method_exists(isless, (T, T))
+        elty = eltype(dimnames[i])
+        if method_exists(isless, (elty, elty))
             sort!(dimnames[i])
         end
     end
 
-    a = zeros(counttype, ntuple(i -> length(dimnames[i]), n))
-    na = NamedArray(a, ntuple(i -> dimnames[i], n), ntuple(i -> "Dim$i", n))
+    a = zeros(eltype(weights), map(length, dimnames)...)
+    na = NamedArray(a, tuple(dimnames...), ntuple(i -> "Dim$i", n))
 
     for (k, v) in d
         na[k...] = v
@@ -74,12 +77,9 @@ function _freqtable{n}(x::NTuple{n},
     na
 end
 
-freqtable(x::AbstractVector...;
-          # Parametric unions are currently not supported for keyword arguments,
-          # so weights are restricted to Float64 for now
-          # https://github.com/JuliaLang/julia/issues/3738
-          weights::Union{Void, AbstractVector{Float64}} = nothing,
-          subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+freqtable{T<:Real}(x::AbstractVector...;
+                   weights::AbstractVector{T} = UnitWeights(),
+                   subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
     _freqtable(x, weights, subset)
 
 # Internal function needed for now so that n is inferred
