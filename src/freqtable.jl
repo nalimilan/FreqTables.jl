@@ -1,15 +1,11 @@
 import Base.ht_keyindex
 
-function freqtable(x::AbstractVector...;
-                   # Parametric unions are currently not supported for keyword arguments,
-                   # so weights are restricted to Float64 for now
-                   # https://github.com/JuliaLang/julia/issues/3738
-                   weights::Union{Void, AbstractVector{Float64}} = nothing,
-                   subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
-    n = length(x)
-
+# Internal function needed for now so that n is inferred
+function _freqtable{n}(x::NTuple{n},
+                       weights::Union{Void, AbstractVector{Float64}} = nothing,
+                       subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
     if subset != nothing
-        x = ntuple(i -> x[i][subset], n)
+        x = map(y -> y[subset], x)
 
         if weights != nothing
             weights = weights[subset]
@@ -78,9 +74,18 @@ function freqtable(x::AbstractVector...;
     na
 end
 
-function freqtable(x::PooledDataVector...; usena::Bool = false)
-	n = length(x)
-	len = [length(y) for y in x]
+freqtable(x::AbstractVector...;
+          # Parametric unions are currently not supported for keyword arguments,
+          # so weights are restricted to Float64 for now
+          # https://github.com/JuliaLang/julia/issues/3738
+          weights::Union{Void, AbstractVector{Float64}} = nothing,
+          subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+    _freqtable(x, weights, subset)
+
+# Internal function needed for now so that n is inferred
+function _freqtable{n}(x::NTuple{n, PooledDataVector}, usena = false)
+	len = map(length, x)
+	lev = map(levels, x)
 
 	for i in 1:n
 	    if len[1] != len[i]
@@ -88,10 +93,8 @@ function freqtable(x::PooledDataVector...; usena::Bool = false)
 	    end
 	end
 
-	lev = [levels(y) for y in x]
-
 	if usena
-        dims = ntuple(i -> length(lev[i]) + 1, n)
+        dims = map(l -> length(l) + 1, lev)
 	    sizes = cumprod([dims...])
 	    a = zeros(Int, dims)
 
@@ -115,9 +118,9 @@ function freqtable(x::PooledDataVector...; usena::Bool = false)
 	        a[el] += 1
 	    end
 
-	    NamedArray(a, ntuple(i -> [lev[i], "NA"], n), ntuple(i -> "Dim$i", n))
+	    NamedArray(a, map(l -> [l; "NA"], lev), ntuple(i -> "Dim$i", n))
 	else
-        dims = ntuple(i -> length(lev[i]), n)
+        dims = map(length, lev)
 	    sizes = cumprod([dims...])
 	    a = zeros(Int, dims)
 
@@ -141,9 +144,11 @@ function freqtable(x::PooledDataVector...; usena::Bool = false)
 	        end
 	    end
 
-	    NamedArray(a, ntuple(i -> lev[i], n), ntuple(i -> "Dim$i", n))
+	    NamedArray(a, lev, ntuple(i -> "Dim$i", n))
 	end
 end
+
+freqtable(x::PooledDataVector...; usena::Bool = false) = _freqtable(x, usena)
 
 function freqtable(d::DataFrame, x::Symbol...; args...)
     a = freqtable([d[y] for y in x]...; args...)
