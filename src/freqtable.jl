@@ -53,7 +53,7 @@ function _freqtable{n,T<:Real}(x::NTuple{n},
 
     k = collect(keys(d))
 
-    dimnames = cell(n)
+    dimnames = Vector{Any}(n)
     for i in 1:n
         s = Set{vtypes.parameters[i]}()
         for j in 1:length(k)
