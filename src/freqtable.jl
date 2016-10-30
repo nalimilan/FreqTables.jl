@@ -155,3 +155,8 @@ function freqtable(d::DataFrame, x::Symbol...; args...)
     setdimnames!(a, x)
     a
 end
+
+function freqtable(df::DataFrame)
+	stacked = names!(stack(df, 1:size(df,2)), [:column, :value])
+	return freqtable(stacked, :value, :column)
+end

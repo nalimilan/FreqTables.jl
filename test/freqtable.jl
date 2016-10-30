@@ -1,5 +1,6 @@
 using FreqTables
 using Base.Test
+using NamedArrays
 
 x = repeat(["a", "b", "c", "d"], outer=[100]);
 y = repeat(["A", "B", "C", "D"], inner=[10], outer=[10]);
@@ -62,3 +63,11 @@ iris[:LongSepal] = iris[:SepalLength] .> 5.0
 # Issue #5
 @test freqtable([Set(1), Set(2)]).array == [1, 1]
 @test freqtable([Set(1), Set(2)], [Set(1), Set(2)]).array == eye(2)
+
+#
+srand(1);
+s1 = sample(1:3, 30);
+s2 = sample(1:3, 30);
+s3 = sample(1:3, WeightVec([.9, .05, .05]), 30);
+data = DataFrame(s1 = s1, s2 = s2, s3 = s3)
+@test freqtable(data) == NamedArray(reshape([7, 10, 13, 17, 7, 6, 24, 3, 3], (3,3)), ([1, 2, 3], [:s1, :s2, :s3]), ("value", "column"))
