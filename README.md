@@ -70,7 +70,7 @@ versicolor          3     8
 ```
 
 When working with a dataframe where all values are of the same type (e.g. unlabeled data, or a subset of a larger dataframe that also contains strings, Float64s, etc.), you can pass just the dataframe (or subset of the dataframe) of interest
-```
+```julia
 julia> df = DataFrame(s1 = repeat(collect(1:3), inner=4), s2 = repeat(collect(1:3), outer=4), s3 = fill(1, 12))
 12×3 DataFrames.DataFrame
 │ Row │ s1 │ s2 │ s3 │
