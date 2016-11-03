@@ -156,7 +156,29 @@ function freqtable(d::DataFrame, x::Symbol...; args...)
     a
 end
 
-function freqtable(df::DataFrame)
-	stacked = names!(stack(df, 1:size(df,2)), [:column, :value])
-	return freqtable(stacked, :value, :column)
+function colwisecounts(df::DataFrame)
+    stacked = names!(stack(df, 1:size(df,2)), [:column, :value])
+    return freqtable(stacked, :value, :column)
+end
+
+function colwisecounts(a::Array{ANY, 2})
+    uniques = sort!(unique(a))
+    count_matrix = Array{Int}(length(uniques), size(a,2))
+    for col in 1:size(a,2)
+        for (row, u) in enumerate(uniques)
+            count_matrix[row, col] = count(i -> i == u, a[:, col])
+        end
+    end
+    NamedArray(count_matrix, (uniques, collect(1:size(a,2))), ("value", "column"))
+end
+
+function rowwisecounts(a::Array{ANY, 2})
+    uniques = sort!(unique(a))
+    count_matrix = Array{Int}(size(a,1), length(uniques))
+    for row in 1:size(a,1)
+        for (col, u) in enumerate(uniques)
+            count_matrix[row, col] = count(i -> i == u, a[row, :])
+        end
+    end
+    NamedArray(count_matrix, (collect(1:size(a,1)), uniques), ("row", "value"))
 end

@@ -1,6 +1,7 @@
 using FreqTables
 using Base.Test
 using NamedArrays
+using DataFrames
 
 x = repeat(["a", "b", "c", "d"], outer=[100]);
 y = repeat(["A", "B", "C", "D"], inner=[10], outer=[10]);
@@ -65,9 +66,39 @@ iris[:LongSepal] = iris[:SepalLength] .> 5.0
 @test freqtable([Set(1), Set(2)], [Set(1), Set(2)]).array == eye(2)
 
 #
-srand(1);
-s1 = sample(1:3, 30);
-s2 = sample(1:3, 30);
-s3 = sample(1:3, WeightVec([.9, .05, .05]), 30);
-data = DataFrame(s1 = s1, s2 = s2, s3 = s3)
-@test freqtable(data) == NamedArray(reshape([7, 10, 13, 17, 7, 6, 24, 3, 3], (3,3)), ([1, 2, 3], [:s1, :s2, :s3]), ("value", "column"))
+sample1 = repeat([:a, :b, :c], inner=4)
+sample2 = repeat([:a, :b, :c], outer=4)
+sample3 = fill(:a, 12)
+sample4 = fill(:d, 12)
+data = DataFrame(sample1 = sample1,
+                    sample2 = sample2,
+                        sample3 = sample3,
+                            sample4 = sample4)
+
+a = [4 4 12  0;
+     4 4  0  0;
+     4 4  0  0;
+     0 0  0 12]
+rows = [:a, :b, :c, :d]
+columns = [:sample1, :sample2, :sample3, :sample4]
+@test colwisecounts(data) == NamedArray(a, (rows, columns), ("value", "column"))
+
+data = Array(data)
+columns = [1, 2, 3, 4]
+@test colwisecounts(data) == NamedArray(a, (rows, columns), ("value", "column"))
+
+
+a = [3 0 0 1;
+     2 1 0 1;
+     2 0 1 1;
+     3 0 0 1;
+     1 2 0 1;
+     1 1 1 1;
+     2 1 0 1;
+     1 2 0 1;
+     1 0 2 1;
+     2 0 1 1;
+     1 1 1 1;
+     1 0 2 1;]
+columns, rows = rows, collect(1:12)
+@test rowwisecounts(data) == NamedArray(a, (rows, columns), ("row", "value"))

@@ -6,4 +6,6 @@ module FreqTables
     include("freqtable.jl")
 
     export freqtable
+    export colwisecounts
+    export rowwisecounts
 end # module
