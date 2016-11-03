@@ -70,6 +70,31 @@ sample1 = repeat([:a, :b, :c], inner=4)
 sample2 = repeat([:a, :b, :c], outer=4)
 sample3 = fill(:a, 12)
 sample4 = fill(:d, 12)
+data = hcat(sample1, sample2, sample3, sample4)
+
+a = [4 4 12  0;
+     4 4  0  0;
+     4 4  0  0;
+     0 0  0 12]
+rows = [:a, :b, :c, :d]
+columns = [1, 2, 3, 4]
+@test colwisecounts(data) == NamedArray(a, (rows, columns), ("value", "column"))
+
+a = [3 0 0 1;
+     2 1 0 1;
+     2 0 1 1;
+     3 0 0 1;
+     1 2 0 1;
+     1 1 1 1;
+     2 1 0 1;
+     1 2 0 1;
+     1 0 2 1;
+     2 0 1 1;
+     1 1 1 1;
+     1 0 2 1;]
+columns, rows = rows, collect(1:12)
+@test rowwisecounts(data) == NamedArray(a, (rows, columns), ("row", "value"))
+
 data = DataFrame(sample1 = sample1,
                     sample2 = sample2,
                         sample3 = sample3,
@@ -82,11 +107,6 @@ a = [4 4 12  0;
 rows = [:a, :b, :c, :d]
 columns = [:sample1, :sample2, :sample3, :sample4]
 @test colwisecounts(data) == NamedArray(a, (rows, columns), ("value", "column"))
-
-data = Array(data)
-columns = [1, 2, 3, 4]
-@test colwisecounts(data) == NamedArray(a, (rows, columns), ("value", "column"))
-
 
 a = [3 0 0 1;
      2 1 0 1;
