@@ -68,3 +68,31 @@ Species \ LongSepal false true
 setosa              28    22   
 versicolor          3     8    
 ```
+
+When working with a dataframe where all values are of the same type (e.g. unlabeled data, or a subset of a larger dataframe that also contains strings, Float64s, etc.), you can pass just the dataframe (or subset of the dataframe) of interest
+```julia
+julia> df = DataFrame(s1 = repeat(collect(1:3), inner=4), s2 = repeat(collect(1:3), outer=4), s3 = fill(1, 12))
+12×3 DataFrames.DataFrame
+│ Row │ s1 │ s2 │ s3 │
+├─────┼────┼────┼────┤
+│ 1   │ 1  │ 1  │ 1  │
+│ 2   │ 1  │ 2  │ 1  │
+│ 3   │ 1  │ 3  │ 1  │
+│ 4   │ 1  │ 1  │ 1  │
+│ 5   │ 2  │ 2  │ 1  │
+│ 6   │ 2  │ 3  │ 1  │
+│ 7   │ 2  │ 1  │ 1  │
+│ 8   │ 2  │ 2  │ 1  │
+│ 9   │ 3  │ 3  │ 1  │
+│ 10  │ 3  │ 1  │ 1  │
+│ 11  │ 3  │ 2  │ 1  │
+│ 12  │ 3  │ 3  │ 1  │
+
+julia> freqtable(df)
+3×3 Named Array{Int64,2}
+value ╲ column │ s1  s2  s3
+───────────────┼───────────
+1              │  4   4  12
+2              │  4   4   0
+3              │  4   4   0
+```
