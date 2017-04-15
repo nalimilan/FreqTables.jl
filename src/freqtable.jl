@@ -18,14 +18,15 @@ end
 @pure eltypes(T) = Tuple{map(eltype, T.parameters)...}
 
 # Internal function needed for now so that n is inferred
-function _freqtable{n,T<:Real}(x::NTuple{n},
-                               weights::AbstractVector{T} = UnitWeights(),
-                               subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
+function _freqtable{T<:Real}(x::Tuple,
+                             weights::AbstractVector{T} = UnitWeights(),
+                             subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
     if !isa(subset, Void)
         x = map(y -> y[subset], x)
         weights = weights[subset]
     end
 
+    n = length(x)
     l = map(length, x)
     vtypes = eltypes(typeof(x))
 
