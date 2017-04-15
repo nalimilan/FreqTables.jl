@@ -2,8 +2,8 @@
 
 [![Build Status](https://travis-ci.org/nalimilan/FreqTables.jl.svg?branch=master)](https://travis-ci.org/nalimilan/FreqTables.jl)
 [![Coverage Status](https://coveralls.io/repos/nalimilan/FreqTables.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/nalimilan/FreqTables.jl?branch=master)
-[![FreqTables](http://pkg.julialang.org/badges/FreqTables_0.4.svg)](http://pkg.julialang.org/?pkg=FreqTables&ver=0.4)
 [![FreqTables](http://pkg.julialang.org/badges/FreqTables_0.5.svg)](http://pkg.julialang.org/?pkg=FreqTables&ver=0.5)
+[![FreqTables](http://pkg.julialang.org/badges/FreqTables_0.6.svg)](http://pkg.julialang.org/?pkg=FreqTables&ver=0.6)
 
 This package allows computing one- or multi-way frequency tables (a.k.a. contingency or pivot tables) from
 any type of vector or array. It includes support for [`PooledDataArray`s](https://github.com/JuliaStats/DataArrays.jl)
