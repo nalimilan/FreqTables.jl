@@ -68,3 +68,47 @@ Species \ LongSepal false true
 setosa              28    22   
 versicolor          3     8    
 ```
+
+`rowwisecounts` and `colwisecounts` can be used to tabulate the occurances of each unique variable across rows or columns of a `DataFrame` or `Array`, given that the dataset is of a uniform type
+```julia
+julia> data
+12×4 Array{Symbol,2}:
+ :a  :a  :a  :d
+ :a  :b  :a  :d
+ :a  :c  :a  :d
+ :a  :a  :a  :d
+ :b  :b  :a  :d
+ :b  :c  :a  :d
+ :b  :a  :a  :d
+ :b  :b  :a  :d
+ :c  :c  :a  :d
+ :c  :a  :a  :d
+ :c  :b  :a  :d
+ :c  :c  :a  :d
+
+julia> colwisecounts(data)
+4×4 Named Array{Int64,2}
+value ╲ column │  1   2   3   4
+───────────────┼───────────────
+a              │  4   4  12   0
+b              │  4   4   0   0
+c              │  4   4   0   0
+d              │  0   0   0  12
+
+julia> rowwisecounts(data)
+12×4 Named Array{Int64,2}
+row ╲ value │ a  b  c  d
+────────────┼───────────
+1           │ 3  0  0  1
+2           │ 2  1  0  1
+3           │ 2  0  1  1
+4           │ 3  0  0  1
+5           │ 1  2  0  1
+6           │ 1  1  1  1
+7           │ 2  1  0  1
+8           │ 1  2  0  1
+9           │ 1  0  2  1
+10          │ 2  0  1  1
+11          │ 1  1  1  1
+12          │ 1  0  2  1
+```
