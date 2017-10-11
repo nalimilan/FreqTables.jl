@@ -151,7 +151,7 @@ end
 
 freqtable(x::PooledDataVector...; usena::Bool = false) = _freqtable(x, usena)
 
-function freqtable(d::DataFrame, x::Symbol...; args...)
+function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
     a = freqtable([d[y] for y in x]...; args...)
     setdimnames!(a, x)
     a
