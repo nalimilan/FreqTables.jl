@@ -1,4 +1,4 @@
-julia 0.5
+julia 0.6
 NamedArrays
-DataArrays
-DataFrames
+CategoricalArrays 0.7.0
+DataFrames 0.11.0

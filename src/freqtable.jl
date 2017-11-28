@@ -6,19 +6,14 @@ end
 Base.getindex(w::UnitWeights, ::Integer...) = 1
 Base.getindex(w::UnitWeights, ::AbstractVector) = w
 
-# @pure only exists in Julia 0.5
-if isdefined(Base, Symbol("@pure"))
-    import Base.@pure
-else
-    macro pure(x) esc(x) end
-end
-
 # About the type inference limitation which prompts this workaround, see
 # https://github.com/JuliaLang/julia/issues/10880
-@pure eltypes(T) = Tuple{map(eltype, T.parameters)...}
+Base.@pure eltypes(T) = Tuple{map(eltype, T.parameters)...}
+Base.@pure vectypes(T) = Tuple{map(U -> Vector{U}, T.parameters)...}
 
 # Internal function needed for now so that n is inferred
 function _freqtable{T<:Real}(x::Tuple,
+                             skipmissing::Bool = false,
                              weights::AbstractVector{T} = UnitWeights(),
                              subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
     if !isa(subset, Void)
@@ -52,24 +47,31 @@ function _freqtable{T<:Real}(x::Tuple,
         end
     end
 
-    k = collect(keys(d))
+    if skipmissing
+        filter!((k, v) -> !any(ismissing, k), d)
+    end
 
-    dimnames = Vector{Any}(n)
+    keyvec = collect(keys(d))
+
+    dimnames = Vector{Vector}(n)
     for i in 1:n
         s = Set{vtypes.parameters[i]}()
-        for j in 1:length(k)
-            push!(s, k[j][i])
+        for j in 1:length(keyvec)
+            push!(s, keyvec[j][i])
         end
 
-        dimnames[i] = unique(s)
-        elty = eltype(dimnames[i])
-        if method_exists(isless, (elty, elty))
+        # convert() is needed for Union{T, Missing}, which currently gives a Vector{Any}
+        # which breaks inference of the return type
+        dimnames[i] = convert(Vector{vtypes.parameters[i]}, unique(s))
+        try
             sort!(dimnames[i])
+        catch err
+            err isa MethodError || rethrow(err)
         end
     end
 
-    a = zeros(eltype(weights), map(length, dimnames)...)
-    na = NamedArray(a, tuple(dimnames...), ntuple(i -> "Dim$i", n))
+    a = zeros(eltype(weights), map(length, dimnames)...)::Array{eltype(weights), n}
+    na = NamedArray(a, tuple(dimnames...)::vectypes(vtypes), ntuple(i -> "Dim$i", n))
 
     for (k, v) in d
         na[k...] = v
@@ -79,14 +81,19 @@ function _freqtable{T<:Real}(x::Tuple,
 end
 
 freqtable{T<:Real}(x::AbstractVector...;
+                   skipmissing::Bool = false,
                    weights::AbstractVector{T} = UnitWeights(),
                    subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
-    _freqtable(x, weights, subset)
+    _freqtable(x, skipmissing, weights, subset)
 
 # Internal function needed for now so that n is inferred
-function _freqtable{n}(x::NTuple{n, PooledDataVector}, usena = false)
-	len = map(length, x)
-	lev = map(levels, x)
+function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false)
+    len = map(length, x)
+    miss = map(v -> eltype(v) >: Missing, x)
+    lev = map(v -> eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : levels(v), x)
+    dims = map(length, lev)
+    # First entry is for missing values (only correct and used if present)
+    ord = map((v, d) -> Int[d; CategoricalArrays.order(v.pool)], x, dims)
 
 	for i in 1:n
 	    if len[1] != len[i]
@@ -94,62 +101,30 @@ function _freqtable{n}(x::NTuple{n, PooledDataVector}, usena = false)
 	    end
 	end
 
-	if usena
-        dims = map(l -> length(l) + 1, lev)
-	    sizes = cumprod([dims...])
-	    a = zeros(Int, dims)
+    sizes = cumprod([dims...])
+    a = zeros(Int, dims)
+    missingpossible = any(miss)
 
-	    for i in 1:len[1]
-	        el = Int(x[1].refs[i])
+    @inbounds for i in 1:len[1]
+        ref = x[1].refs[i]        
+        el = ord[1][ref + 1]
+        anymiss = missingpossible & (ref <= 0)
 
-            if el == 0
-	            el = dims[1]
-	        end
+        for j in 2:n
+            ref = x[j].refs[i]
+            anymiss |= missingpossible & (ref <= 0)
+            el += (ord[j][ref + 1] - 1) * sizes[j - 1]
+        end
 
-	        for j in 2:n
-	            val = Int(x[j].refs[i])
+        if !(missingpossible && skipmissing && anymiss)
+            a[el] += 1
+        end
+    end
 
-	            if val == zero(val)
-	                val = dims[j]
-	            end
-
-	            el += Int((val - 1) * sizes[j - 1])
-	        end
-
-	        a[el] += 1
-	    end
-
-	    NamedArray(a, map(l -> [l; "NA"], lev), ntuple(i -> "Dim$i", n))
-	else
-        dims = map(length, lev)
-	    sizes = cumprod([dims...])
-	    a = zeros(Int, dims)
-
-	    for i in 1:len[1]
-	        pos = (x[1].refs[i] != zero(UInt))
-	        el = Int(x[1].refs[i])
-
-	        for j in 2:n
-	            val = x[j].refs[i]
-
-	            if val == zero(val)
-	                pos = false
-	                break
-	            end
-
-	            el += Int((val - 1) * sizes[j - 1])
-	        end
-
-	        if pos
-	            @inbounds a[el] += 1
-	        end
-	    end
-
-	    NamedArray(a, lev, ntuple(i -> "Dim$i", n))
-	end
+    NamedArray(a, lev, ntuple(i -> "Dim$i", n))
 end
 
-freqtable(x::PooledDataVector...; usena::Bool = false) = _freqtable(x, usena)
+freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false) = _freqtable(x, skipmissing)
 
 function freqtable(d::DataFrame, x::Symbol...; args...)
     a = freqtable([d[y] for y in x]...; args...)
