@@ -6,16 +6,18 @@
 
 This package allows computing one- or multi-way frequency tables (a.k.a. contingency or pivot tables) from
 any type of vector or array. It includes support for [`CategoricalArray`](https://github.com/JuliaData/CategoricalArrays.jl)
-and [`DataFrame`s](https://github.com/JuliaData/DataFrames.jl), as well as for weighted counts.
+and [`DataFrame`](https://github.com/JuliaData/DataFrames.jl), as well as for weighted counts.
 
 Tables are represented as [`NamedArray`](https://github.com/davidavdav/NamedArrays.jl/) objects.
 
 ```julia
 julia> using FreqTables
+
 julia> x = repeat(["a", "b", "c", "d"], outer=[100]);
+
 julia> y = repeat(["A", "B", "C", "D"], inner=[10], outer=[10]);
+
 julia> freqtable(x)
-julia>  freqtable(x)
 4-element Named Array{Int64,1}
 Dim1  │
 ──────┼────
@@ -52,7 +54,7 @@ c           │ 2.0  3.0
 d           │ 1.0  1.5
 ```
 
-For convenience, when working with a data frame, one can also pass the `DataFrame` object and columns as symbols:
+For convenience, when working with a data frame, one can also pass a `DataFrame` object and columns as symbols:
 ```julia
 julia> using DataFrames, CSV
 
@@ -68,7 +70,6 @@ setosa              │    28     22
 versicolor          │     3     47
 virginica           │     1     49
 
-julia> freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
 julia> freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
 2×2 Named Array{Int64,2}
 Species ╲ LongSepal │ false   true
