@@ -1,5 +1,5 @@
 module FreqTables
-    using DataArrays
+    using CategoricalArrays
     using DataFrames
     using NamedArrays
 
