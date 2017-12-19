@@ -131,3 +131,9 @@ function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
     setdimnames!(a, x)
     a
 end
+
+function proptable(x...; dims=nothing, args...)
+    tbl = freqtable(x...; args...)
+    isa(dims, Void) && return tbl / sum(tbl)
+    tbl ./ sum(tbl, dims)
+end

@@ -26,6 +26,15 @@ b     │ 100
 c     │ 100
 d     │ 100
 
+julia> proptable(x)
+4-element Named Array{Float64,1}
+Dim1  │
+──────┼─────
+a     │ 0.25
+b     │ 0.25
+c     │ 0.25
+d     │ 0.25
+
 julia> freqtable(x, y)
 4×4 Named Array{Int64,2}
 Dim1 ╲ Dim2 │  A   B   C   D
@@ -43,6 +52,15 @@ a           │ 3  2
 b           │ 3  2
 c           │ 2  3
 d           │ 2  3
+
+julia> proptable(x, y, subset=1:20, dims=1)
+4×2 Named Array{Float64,2}
+Dim1 ╲ Dim2 │   A    B
+────────────┼─────────
+a           │ 0.3  0.2
+b           │ 0.3  0.2
+c           │ 0.2  0.3
+d           │ 0.2  0.3
 
 julia> freqtable(x, y, subset=1:20, weights=repeat([1, .5], outer=[10]))
 4×2 Named Array{Float64,2}
