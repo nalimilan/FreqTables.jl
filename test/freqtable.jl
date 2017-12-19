@@ -107,3 +107,7 @@ tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
 # Issue #5
 @test freqtable([Set(1), Set(2)]) == [1, 1]
 @test freqtable([Set(1), Set(2)], [Set(1), Set(2)]) == eye(2)
+
+@test_throws ArgumentError freqtable()
+@test_throws ArgumentError freqtable(DataFrame())
+@test_throws ArgumentError freqtable(iris)

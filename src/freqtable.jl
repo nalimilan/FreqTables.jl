@@ -16,12 +16,14 @@ function _freqtable{T<:Real}(x::Tuple,
                              skipmissing::Bool = false,
                              weights::AbstractVector{T} = UnitWeights(),
                              subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
+    n = length(x)
+    n == 0 && throw(ArgumentError("at least one argument must be provided"))
+
     if !isa(subset, Void)
         x = map(y -> y[subset], x)
         weights = weights[subset]
     end
 
-    n = length(x)
     l = map(length, x)
     vtypes = eltypes(typeof(x))
 
@@ -88,6 +90,7 @@ freqtable{T<:Real}(x::AbstractVector...;
 
 # Internal function needed for now so that n is inferred
 function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false)
+    n == 0 && throw(ArgumentError("at least one argument must be provided"))
     len = map(length, x)
     miss = map(v -> eltype(v) >: Missing, x)
     lev = map(v -> eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : levels(v), x)
