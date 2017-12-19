@@ -92,7 +92,6 @@ freqtable{T<:Real}(x::AbstractVector...;
 function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false)
     n == 0 && throw(ArgumentError("at least one argument must be provided"))
     len = map(length, x)
-
     miss = map(v -> eltype(v) >: Missing, x)
     lev = map(v -> eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : levels(v), x)
     dims = map(length, lev)
