@@ -53,7 +53,7 @@ b           │ 3  2
 c           │ 2  3
 d           │ 2  3
 
-julia> prop(tbl2, 1)
+julia> prop(tbl2, 2)
 4×2 Named Array{Float64,2}
 Dim1 ╲ Dim2 │   A    B
 ────────────┼─────────

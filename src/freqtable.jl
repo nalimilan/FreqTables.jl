@@ -132,5 +132,46 @@ function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
     a
 end
 
+"""
+    prop(tbl, [margin])
+
+Create table of proportions from a frequency table `tbl` with margins generated for
+dimensions specified by `margin`. Does not check if `tbl` contains non-negative frequencies.
+Calculating `sum` over the result of `prop` over dimensions that are complement of `margin`
+produces `AbstractArray` containing only approximately `1.0`, see last example below.
+
+**Arguments**
+
+* `tbl` : `AbstractArray{<:Number}` containing frequency table
+* `margin` : `Integer` or collection of `Integer`s of dimensions to generate proportions by;
+             duplicated entries are ignored, e.g. [1, 1, 2] is the same as `[1, 2]`;
+             if omitted proportions over the whole `tbl` are computed
+
+**Result**
+
+* `::AbstractArray` : array containing calculated proportions
+
+**Examples**
+
+```julia
+prop([1 2; 3 4])
+prop([1 2; 3 4], ())
+prop([1 2; 3 4], 1)
+prop([1 2; 3 4], [1])
+prop([1 2; 3 4], (1,2))
+tbl = prop(rand(5, 5, 5, 5), (1, 2))
+sumtbl = sum(tbl, (3,4))
+all(x -> x ≈ 1.0, sumtbl)
+```
+
+"""
+
 prop(tbl::AbstractArray{<:Number}) = tbl / sum(tbl)
-prop(tbl::AbstractArray{<:Number}, dims) = tbl ./ sum(tbl, dims)
+
+function prop(tbl::AbstractArray{<:Number,N}, margin) where N
+    if !all(x -> isa(x, Integer) && (1 <= x <= N), margin)
+        throw(ArgumentError("invalid margin argument; expected integers in a valid dimension range"))
+    end
+    minimum
+    tbl ./ sum(tbl, tuple(setdiff(1:N, margin)...))
+end
