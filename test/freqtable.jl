@@ -59,10 +59,14 @@ tab =freqtable(x, y,
               3.0 2.0
               1.5 1.0]
 @test names(tab) == [["a", "b", "c", "d"], ["C", "D"]]
-@test prop(tab) == [4 6; 2 3; 6 4; 3 2] / 30.0
-@test prop(tab, 2) == [8  12; 4   6; 12  8; 6   4] / 30.0
-@test prop(tab, 1) == [6 9; 6 9; 9 6; 9 6] / 15.0
-@test prop(tab, 1, 2) == [1.0 1.0; 1.0 1.0; 1.0 1.0; 1.0 1.0]
+pt = @inferred prop(tab)
+@test pt == [4 6; 2 3; 6 4; 3 2] / 30.0
+pt = @inferred prop(tab, 2)
+@test pt == [8  12; 4   6; 12  8; 6   4] / 30.0
+pt = @inferred prop(tab, 1)
+@test pt == [6 9; 6 9; 9 6; 9 6] / 15.0
+pt = @inferred prop(tab, 1, 2)
+@test pt == [1.0 1.0; 1.0 1.0; 1.0 1.0; 1.0 1.0]
 
 using CategoricalArrays
 cx = CategoricalArray(x)
