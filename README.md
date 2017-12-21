@@ -17,7 +17,7 @@ julia> x = repeat(["a", "b", "c", "d"], outer=[100]);
 
 julia> y = repeat(["A", "B", "C", "D"], inner=[10], outer=[10]);
 
-julia> freqtable(x)
+julia> tbl = freqtable(x)
 4-element Named Array{Int64,1}
 Dim1  │
 ──────┼────
@@ -26,7 +26,7 @@ b     │ 100
 c     │ 100
 d     │ 100
 
-julia> proptable(x)
+julia> prop(tbl)
 4-element Named Array{Float64,1}
 Dim1  │
 ──────┼─────
@@ -44,7 +44,7 @@ b           │ 30  20  30  20
 c           │ 20  30  20  30
 d           │ 20  30  20  30
 
-julia> freqtable(x, y, subset=1:20)
+julia> tbl2 = freqtable(x, y, subset=1:20)
 4×2 Named Array{Int64,2}
 Dim1 ╲ Dim2 │ A  B
 ────────────┼─────
@@ -53,7 +53,7 @@ b           │ 3  2
 c           │ 2  3
 d           │ 2  3
 
-julia> proptable(x, y, subset=1:20, dims=1)
+julia> prop(tbl2, 1)
 4×2 Named Array{Float64,2}
 Dim1 ╲ Dim2 │   A    B
 ────────────┼─────────

@@ -132,14 +132,5 @@ function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
     a
 end
 
-function proptable(x...; args...)
-    n = length(x)
-    n == 0 && throw(ArgumentError("at least one argument must be provided"))
-    if n > 1 && isa(x[end], Union{Integer, Tuple{Vararg{Integer, N}} where N})
-        dims = x[end]
-        tbl = freqtable(x[1:(end-1)]...; args...)
-        return tbl ./ sum(tbl, dims)
-    end
-    tbl = freqtable(x...; args...)
-    tbl / sum(tbl)
-end
+prop(tbl::AbstractArray{<:Number}) = tbl / sum(tbl)
+prop(tbl::AbstractArray{<:Number}, dims) = tbl ./ sum(tbl, dims)

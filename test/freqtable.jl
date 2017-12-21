@@ -8,7 +8,7 @@ y = repeat(["D", "C", "A", "B"], inner=[10], outer=[10]);
 tab = @inferred freqtable(x)
 @test tab == [100, 100, 100, 100]
 @test names(tab) == [["a", "b", "c", "d"]]
-@test proptable(x) == [0.25, 0.25, 0.25, 0.25]
+@test prop(tab) == [0.25, 0.25, 0.25, 0.25]
 tab = @inferred freqtable(y)
 @test tab == [100, 100, 100, 100]
 @test names(tab) == [["A", "B", "C", "D"]]
@@ -18,31 +18,31 @@ tab = @inferred freqtable(x, y)
               20 30 30 20;
               20 30 30 20]
 @test names(tab) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
-@test proptable(x, y) == [0.075  0.05  0.05 0.075;
-                          0.075  0.05  0.05 0.075;
-                           0.05 0.075 0.075  0.05;
-                           0.05 0.075 0.075  0.05]
-@test proptable(x, y, (1,2)) == [0.075  0.05  0.05 0.075;
-                                 0.075  0.05  0.05 0.075;
-                                  0.05 0.075 0.075  0.05;
-                                  0.05 0.075 0.075  0.05]
-@test proptable(x, y, 1) == [0.3 0.2 0.2 0.3;
-                             0.3 0.2 0.2 0.3;
-                             0.2 0.3 0.3 0.2;
-                             0.2 0.3 0.3 0.2]
-@test proptable(x, y, 2) == [0.3 0.2 0.2 0.3;
-                             0.3 0.2 0.2 0.3;
-                             0.2 0.3 0.3 0.2;
-                             0.2 0.3 0.3 0.2]
-@test proptable(x, y, ()) == [1.0 1.0 1.0 1.0;
-                              1.0 1.0 1.0 1.0;
-                              1.0 1.0 1.0 1.0;
-                              1.0 1.0 1.0 1.0]
+@test prop(tab) == [0.075  0.05  0.05 0.075;
+                    0.075  0.05  0.05 0.075;
+                     0.05 0.075 0.075  0.05;
+                     0.05 0.075 0.075  0.05]
+@test prop(tab, (1,2)) == [0.075  0.05  0.05 0.075;
+                           0.075  0.05  0.05 0.075;
+                            0.05 0.075 0.075  0.05;
+                            0.05 0.075 0.075  0.05]
+@test prop(tab, 1) == [0.3 0.2 0.2 0.3;
+                       0.3 0.2 0.2 0.3;
+                       0.2 0.3 0.3 0.2;
+                       0.2 0.3 0.3 0.2]
+@test prop(tab, 2) == [0.3 0.2 0.2 0.3;
+                       0.3 0.2 0.2 0.3;
+                       0.2 0.3 0.3 0.2;
+                       0.2 0.3 0.3 0.2]
+@test prop(tab, ()) == [1.0 1.0 1.0 1.0;
+                        1.0 1.0 1.0 1.0;
+                        1.0 1.0 1.0 1.0;
+                        1.0 1.0 1.0 1.0]
 
-@test_throws ArgumentError proptable()
-@test_throws MethodError proptable([1,2,3], ("a","b"))
-@test_throws MethodError proptable(("a","b"))
-@test_throws MethodError proptable((1, 2))
+@test_throws MethodError prop()
+@test_throws MethodError prop([1,2,3], ("a","b"))
+@test_throws MethodError prop(("a","b"))
+@test_throws MethodError prop((1, 2))
 
 tab =freqtable(x, y,
                subset=1:20,
@@ -52,16 +52,13 @@ tab =freqtable(x, y,
               3.0 2.0
               1.5 1.0]
 @test names(tab) == [["a", "b", "c", "d"], ["C", "D"]]
-@test proptable(x, y, subset=1:20, weights=repeat([1, .5],
-                outer=[10])) == [4 6; 2 3; 6 4; 3 2] / 30.0
-@test proptable(x, y, 1, subset=1:20, weights=repeat([1, .5],
-                outer=[10])) == [8  12; 4   6; 12  8; 6   4] / 30.0
-@test proptable(x, y, 2, subset=1:20, weights=repeat([1, .5],
-                outer=[10])) == [6 9; 6 9; 9 6; 9 6] / 15.0
-@test proptable(x, y, (), subset=1:20, weights=repeat([1, .5],
-                outer=[10])) == [1.0 1.0; 1.0 1.0; 1.0 1.0; 1.0 1.0]
-@test proptable(x, y, (1, 2), subset=1:20, weights=repeat([1, .5],
-                outer=[10])) == [4 6; 2 3; 6 4; 3 2] / 30.0
+@test prop(tab) == [4 6; 2 3; 6 4; 3 2] / 30.0
+@test prop(tab, 1) == [8  12; 4   6; 12  8; 6   4] / 30.0
+@test prop(tab, (1,)) == [8  12; 4   6; 12  8; 6   4] / 30.0
+@test prop(tab, 2) == [6 9; 6 9; 9 6; 9 6] / 15.0
+@test prop(tab, (2,)) == [6 9; 6 9; 9 6; 9 6] / 15.0
+@test prop(tab, ()) == [1.0 1.0; 1.0 1.0; 1.0 1.0; 1.0 1.0]
+@test prop(tab, (1, 2)) == [4 6; 2 3; 6 4; 3 2] / 30.0
 
 using CategoricalArrays
 cx = CategoricalArray(x)
