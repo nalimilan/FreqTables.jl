@@ -133,45 +133,55 @@ function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
 end
 
 """
-    prop(tbl, [margin])
+    prop(tbl::AbstractArray{<:Number}, [margin::Integer...])
 
-Create table of proportions from a frequency table `tbl` with margins generated for
-dimensions specified by `margin`. Does not check if `tbl` contains non-negative frequencies.
+Create table of proportions from a table `tbl` with margins generated for
+dimensions specified by `margin`.
+If `margin` is omitted proportions over the whole `tbl` are computed.
+
+In particular when `margin` is `1` row proportions,
+and when `margin` is `2` column proportions are calculated.
+
+`prop` does not check if `tbl` contains non-negative values.
 Calculating `sum` over the result of `prop` over dimensions that are complement of `margin`
-produces `AbstractArray` containing only approximately `1.0`, see last example below.
-
-**Arguments**
-
-* `tbl` : `AbstractArray{<:Number}` containing frequency table
-* `margin` : `Integer` or collection of `Integer`s of dimensions to generate proportions by;
-             duplicated entries are ignored, e.g. [1, 1, 2] is the same as `[1, 2]`;
-             if omitted proportions over the whole `tbl` are computed
-
-**Result**
-
-* `::AbstractArray` : array containing calculated proportions
+produces `AbstractArray` containing only `1.0`, see last example below.
 
 **Examples**
 
-```julia
-prop([1 2; 3 4])
-prop([1 2; 3 4], ())
-prop([1 2; 3 4], 1)
-prop([1 2; 3 4], [1])
-prop([1 2; 3 4], (1,2))
-tbl = prop(rand(5, 5, 5, 5), (1, 2))
-sumtbl = sum(tbl, (3,4))
-all(x -> x ≈ 1.0, sumtbl)
-```
+```jldoctest
+julia> prop([1 2; 3 4])
+2×2 Array{Float64,2}:
+ 0.1  0.2
+ 0.3  0.4
 
+julia> prop([1 2; 3 4], 1)
+2×2 Array{Float64,2}:
+ 0.333333  0.666667
+ 0.428571  0.571429
+
+julia> prop([1 2; 3 4], 2)
+2×2 Array{Float64,2}:
+ 0.25  0.333333
+ 0.75  0.666667
+
+julia> prop([1 2; 3 4], 1, 2)
+2×2 Array{Float64,2}:
+ 1.0  1.0
+ 1.0  1.0
+
+julia> tbl = prop(rand(2, 2, 2, 2), 1, 2); sum(tbl, (3,4))
+2×2×1×1 Array{Float64,4}:
+[:, :, 1, 1] =
+ 1.0  1.0
+ 1.0  1.0
+
+```
 """
 
 prop(tbl::AbstractArray{<:Number}) = tbl / sum(tbl)
 
-function prop(tbl::AbstractArray{<:Number,N}, margin) where N
-    if !all(x -> isa(x, Integer) && (1 <= x <= N), margin)
-        throw(ArgumentError("invalid margin argument; expected integers in a valid dimension range"))
-    end
-    minimum
+function prop(tbl::AbstractArray{<:Number,N}, margin::Integer...) where N
+    lo, hi = extrema(margin)
+    (lo < 1 || hi > N) && throw(ArgumentError("margin must be a valid dimension"))
     tbl ./ sum(tbl, tuple(setdiff(1:N, margin)...))
 end

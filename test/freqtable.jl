@@ -18,36 +18,38 @@ tab = @inferred freqtable(x, y)
               20 30 30 20;
               20 30 30 20]
 @test names(tab) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
-@test prop(tab) == [0.075  0.05  0.05 0.075;
-                    0.075  0.05  0.05 0.075;
-                     0.05 0.075 0.075  0.05;
-                     0.05 0.075 0.075  0.05]
-@test prop(tab, ()) == [0.075  0.05  0.05 0.075;
-                        0.075  0.05  0.05 0.075;
-                         0.05 0.075 0.075  0.05;
-                         0.05 0.075 0.075  0.05]
-@test prop(tab, 2) == [0.3 0.2 0.2 0.3;
-                       0.3 0.2 0.2 0.3;
-                       0.2 0.3 0.3 0.2;
-                       0.2 0.3 0.3 0.2]
-@test prop(tab, 1) == [0.3 0.2 0.2 0.3;
-                       0.3 0.2 0.2 0.3;
-                       0.2 0.3 0.3 0.2;
-                       0.2 0.3 0.3 0.2]
-@test prop(tab, (1, 2)) == [1.0 1.0 1.0 1.0;
-                            1.0 1.0 1.0 1.0;
-                            1.0 1.0 1.0 1.0;
-                            1.0 1.0 1.0 1.0]
 
-tbl = prop(rand(5, 5, 5, 5), (1, 2))
+pt = @inferred prop(tab)
+@test pt == [0.075  0.05  0.05 0.075;
+             0.075  0.05  0.05 0.075;
+              0.05 0.075 0.075  0.05;
+              0.05 0.075 0.075  0.05]
+pt = @inferred prop(tab, 2)
+@test pt == [0.3 0.2 0.2 0.3;
+             0.3 0.2 0.2 0.3;
+             0.2 0.3 0.3 0.2;
+             0.2 0.3 0.3 0.2]
+pt = @inferred prop(tab, 1)
+@test pt == [0.3 0.2 0.2 0.3;
+             0.3 0.2 0.2 0.3;
+             0.2 0.3 0.3 0.2;
+             0.2 0.3 0.3 0.2]
+pt = @inferred prop(tab, 1, 2)
+@test pt == [1.0 1.0 1.0 1.0;
+             1.0 1.0 1.0 1.0;
+             1.0 1.0 1.0 1.0;
+             1.0 1.0 1.0 1.0]
+
+tbl = prop(rand(5, 5, 5, 5), 1, 2)
 sumtbl = sum(tbl, (3,4))
 @test all(x -> x ≈ 1.0, sumtbl)
 
 @test_throws MethodError prop()
 @test_throws MethodError prop(("a","b"))
 @test_throws MethodError prop((1, 2))
-@test_throws ArgumentError prop([1,2,3], ("a","b"))
+@test_throws MethodError prop([1,2,3], "a")
 @test_throws ArgumentError prop([1,2,3], 2)
+@test_throws ArgumentError prop([1,2,3], 0)
 
 tab =freqtable(x, y,
                subset=1:20,
@@ -59,11 +61,8 @@ tab =freqtable(x, y,
 @test names(tab) == [["a", "b", "c", "d"], ["C", "D"]]
 @test prop(tab) == [4 6; 2 3; 6 4; 3 2] / 30.0
 @test prop(tab, 2) == [8  12; 4   6; 12  8; 6   4] / 30.0
-@test prop(tab, (2,)) == [8  12; 4   6; 12  8; 6   4] / 30.0
 @test prop(tab, 1) == [6 9; 6 9; 9 6; 9 6] / 15.0
-@test prop(tab, (1,)) == [6 9; 6 9; 9 6; 9 6] / 15.0
-@test prop(tab, (1, 2)) == [1.0 1.0; 1.0 1.0; 1.0 1.0; 1.0 1.0]
-@test prop(tab, ()) == [4 6; 2 3; 6 4; 3 2] / 30.0
+@test prop(tab, 1, 2) == [1.0 1.0; 1.0 1.0; 1.0 1.0; 1.0 1.0]
 
 using CategoricalArrays
 cx = CategoricalArray(x)
