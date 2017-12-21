@@ -204,3 +204,6 @@ function prop(tbl::AbstractArray{<:Number,N}, margin::Integer...) where N
     (lo < 1 || hi > N) && throw(ArgumentError("margin must be a valid dimension"))
     tbl ./ sum(tbl, tuple(setdiff(1:N, margin)...))
 end
+
+prop(tbl::NamedArray{<:Number}, margin::Integer...) =
+    NamedArray(prop(array(tbl), margin...), tbl.dicts, tbl.dimnames)

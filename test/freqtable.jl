@@ -40,7 +40,7 @@ pt = @inferred prop(tab, 1, 2)
              1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0]
 
-tbl = prop(rand(5, 5, 5, 5), 1, 2)
+tbl = @inferred prop(rand(5, 5, 5, 5), 1, 2)
 sumtbl = sum(tbl, (3,4))
 @test all(x -> x ≈ 1.0, sumtbl)
 
