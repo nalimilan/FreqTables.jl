@@ -12,10 +12,10 @@ Base.@pure eltypes(T) = Tuple{map(eltype, T.parameters)...}
 Base.@pure vectypes(T) = Tuple{map(U -> Vector{U}, T.parameters)...}
 
 # Internal function needed for now so that n is inferred
-function _freqtable{T<:Real}(x::Tuple,
-                             skipmissing::Bool = false,
-                             weights::AbstractVector{T} = UnitWeights(),
-                             subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
+function _freqtable(x::Tuple,
+                    skipmissing::Bool = false,
+                    weights::AbstractVector{<:Real} = UnitWeights(),
+                    subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
     n = length(x)
     n == 0 && throw(ArgumentError("at least one argument must be provided"))
 
@@ -82,16 +82,16 @@ function _freqtable{T<:Real}(x::Tuple,
     na
 end
 
-freqtable{T<:Real}(x::AbstractVector...;
-                   skipmissing::Bool = false,
-                   weights::AbstractVector{T} = UnitWeights(),
-                   subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+freqtable(x::AbstractVector...;
+          skipmissing::Bool = false,
+          weights::AbstractVector{<:Real} = UnitWeights(),
+          subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
     _freqtable(x, skipmissing, weights, subset)
 
 # Internal function needed for now so that n is inferred
-function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false,
-                       weights::AbstractVector{T} = UnitWeights(),
-                       subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
+function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false,
+                    weights::AbstractVector{<:Real} = UnitWeights(),
+                    subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) where n
     n == 0 && throw(ArgumentError("at least one argument must be provided"))
 
     if !isa(subset, Void)
@@ -117,7 +117,7 @@ function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Boo
     end
 
     sizes = cumprod([dims...])
-    a = zeros(Int, dims)
+    a = zeros(eltype(weights), dims)
     missingpossible = any(miss)
 
     @inbounds for i in 1:len[1]
@@ -140,7 +140,7 @@ function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Boo
 end
 
 freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
-          weights::AbstractVector{T} = UnitWeights(),
+          weights::AbstractVector{<:Real} = UnitWeights(),
           subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
     _freqtable(x, skipmissing, weights, subset)
 

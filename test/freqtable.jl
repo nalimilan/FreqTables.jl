@@ -88,11 +88,11 @@ tab = @inferred freqtable(cx, cy)
 tab =freqtable(cx, cy,
                subset=1:20,
                weights=repeat([1, .5], outer=[10]))
-@test tab == [2.0 3.0
-              1.0 1.5
-              3.0 2.0
-              1.5 1.0]
-@test names(tab) == [["a", "b", "c", "d"], ["C", "D"]]
+@test tab == [0.0 0.0 2.0 3.0
+              0.0 0.0 1.0 1.5
+              0.0 0.0 3.0 2.0
+              0.0 0.0 1.5 1.0]
+@test names(tab) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
 
 
 using Missings
@@ -155,13 +155,15 @@ for docat in [false, true]
                    1 49]
     @test names(tab) == [["setosa", "versicolor", "virginica"], [false, true]]
     tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
-    @test tab == [28 22
-                   3  8]
-    @test names(tab) == [["setosa", "versicolor"], [false, true]]
+    @test tab[1:2, :] == [28 22
+                           3  8]
+    @test names(tab[1:2, :]) == [["setosa", "versicolor"], [false, true]]
     tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
-    @test tab == [28 22
-                   3  8]
-    @test names(tab) == [["setosa", "versicolor"], [false, true]]
+    @test tab[1:2, :] == [28 22
+                           3  8]
+    @test names(tab[1:2, :]) == [["setosa", "versicolor"], [false, true]]
+
+    @test_throws ArgumentError freqtable(iris)
 end
 
 # Issue #5
@@ -170,4 +172,3 @@ end
 
 @test_throws ArgumentError freqtable()
 @test_throws ArgumentError freqtable(DataFrame())
-@test_throws ArgumentError freqtable(iris)
