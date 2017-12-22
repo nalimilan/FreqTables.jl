@@ -85,6 +85,15 @@ tab = @inferred freqtable(cx, cy)
               20 30 30 20]
 @test names(tab) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
 
+tab =freqtable(cx, cy,
+               subset=1:20,
+               weights=repeat([1, .5], outer=[10]))
+@test tab == [0.0 0.0 2.0 3.0
+              0.0 0.0 1.0 1.5
+              0.0 0.0 3.0 2.0
+              0.0 0.0 1.5 1.0]
+@test names(tab) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
+
 
 using Missings
 const ≅ = isequal
@@ -132,17 +141,30 @@ tabc = freqtable(mcx, mcy, skipmissing=true)
 
 
 using DataFrames, CSV
-iris = CSV.read(joinpath(Pkg.dir("DataFrames"), "test/data/iris.csv"), categorical=false);
-iris[:LongSepal] = iris[:SepalLength] .> 5.0
-tab = freqtable(iris, :Species, :LongSepal)
-@test tab == [28 22
-               3 47
-               1 49]
-@test names(tab) == [["setosa", "versicolor", "virginica"], [false, true]]
-tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
-@test tab == [28 22
-               3  8]
-@test names(tab) == [["setosa", "versicolor"], [false, true]]
+
+for docat in [false, true]
+    iris = CSV.read(joinpath(Pkg.dir("DataFrames"), "test/data/iris.csv"), categorical=docat);
+    if docat
+        iris[:LongSepal] = categorical(iris[:SepalLength] .> 5.0)
+    else
+        iris[:LongSepal] = iris[:SepalLength] .> 5.0
+    end
+    tab = freqtable(iris, :Species, :LongSepal)
+    @test tab == [28 22
+                   3 47
+                   1 49]
+    @test names(tab) == [["setosa", "versicolor", "virginica"], [false, true]]
+    tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
+    @test tab[1:2, :] == [28 22
+                           3  8]
+    @test names(tab[1:2, :]) == [["setosa", "versicolor"], [false, true]]
+    tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
+    @test tab[1:2, :] == [28 22
+                           3  8]
+    @test names(tab[1:2, :]) == [["setosa", "versicolor"], [false, true]]
+
+    @test_throws ArgumentError freqtable(iris)
+end
 
 # Issue #5
 @test freqtable([Set(1), Set(2)]) == [1, 1]
@@ -150,4 +172,3 @@ tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
 
 @test_throws ArgumentError freqtable()
 @test_throws ArgumentError freqtable(DataFrame())
-@test_throws ArgumentError freqtable(iris)

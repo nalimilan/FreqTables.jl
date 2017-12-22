@@ -12,10 +12,10 @@ Base.@pure eltypes(T) = Tuple{map(eltype, T.parameters)...}
 Base.@pure vectypes(T) = Tuple{map(U -> Vector{U}, T.parameters)...}
 
 # Internal function needed for now so that n is inferred
-function _freqtable{T<:Real}(x::Tuple,
-                             skipmissing::Bool = false,
-                             weights::AbstractVector{T} = UnitWeights(),
-                             subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
+function _freqtable(x::Tuple,
+                    skipmissing::Bool = false,
+                    weights::AbstractVector{<:Real} = UnitWeights(),
+                    subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
     n = length(x)
     n == 0 && throw(ArgumentError("at least one argument must be provided"))
 
@@ -82,15 +82,23 @@ function _freqtable{T<:Real}(x::Tuple,
     na
 end
 
-freqtable{T<:Real}(x::AbstractVector...;
-                   skipmissing::Bool = false,
-                   weights::AbstractVector{T} = UnitWeights(),
-                   subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+freqtable(x::AbstractVector...;
+          skipmissing::Bool = false,
+          weights::AbstractVector{<:Real} = UnitWeights(),
+          subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
     _freqtable(x, skipmissing, weights, subset)
 
 # Internal function needed for now so that n is inferred
-function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false)
+function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false,
+                    weights::AbstractVector{<:Real} = UnitWeights(),
+                    subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) where n
     n == 0 && throw(ArgumentError("at least one argument must be provided"))
+
+    if !isa(subset, Void)
+        x = map(y -> y[subset], x)
+        weights = weights[subset]
+    end
+
     len = map(length, x)
     miss = map(v -> eltype(v) >: Missing, x)
     lev = map(v -> eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : levels(v), x)
@@ -104,8 +112,12 @@ function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Boo
 	    end
 	end
 
+    if !isa(weights, UnitWeights) && length(weights) != len[1]
+        error("'weights' (length $(length(weights))) must be of the same length as vectors (length $(len[1]))")
+    end
+
     sizes = cumprod([dims...])
-    a = zeros(Int, dims)
+    a = zeros(eltype(weights), dims)
     missingpossible = any(miss)
 
     @inbounds for i in 1:len[1]
@@ -120,14 +132,17 @@ function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Boo
         end
 
         if !(missingpossible && skipmissing && anymiss)
-            a[el] += 1
+            a[el] += weights[i]
         end
     end
 
     NamedArray(a, lev, ntuple(i -> "Dim$i", n))
 end
 
-freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false) = _freqtable(x, skipmissing)
+freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
+          weights::AbstractVector{<:Real} = UnitWeights(),
+          subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+    _freqtable(x, skipmissing, weights, subset)
 
 function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
     a = freqtable([d[y] for y in x]...; args...)
