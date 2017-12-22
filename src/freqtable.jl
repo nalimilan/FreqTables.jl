@@ -134,3 +134,79 @@ function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
     setdimnames!(a, x)
     a
 end
+
+"""
+    prop(tbl::AbstractArray{<:Number}, [margin::Integer...])
+
+Create table of proportions from a table `tbl` with margins generated for
+dimensions specified by `margin`.
+If `margin` is omitted proportions over the whole `tbl` are computed.
+
+In particular when `margin` is `1` row proportions,
+and when `margin` is `2` column proportions are calculated.
+
+`prop` does not check if `tbl` contains non-negative values.
+Calculating `sum` over the result of `prop` over dimensions that are complement of `margin`
+produces `AbstractArray` containing only `1.0`, see last example below.
+
+**Examples**
+
+```jldoctest
+julia> prop([1 2; 3 4])
+2×2 Array{Float64,2}:
+ 0.1  0.2
+ 0.3  0.4
+
+julia> prop([1 2; 3 4], 1)
+2×2 Array{Float64,2}:
+ 0.333333  0.666667
+ 0.428571  0.571429
+
+julia> prop([1 2; 3 4], 2)
+2×2 Array{Float64,2}:
+ 0.25  0.333333
+ 0.75  0.666667
+
+julia> prop([1 2; 3 4], 1, 2)
+2×2 Array{Float64,2}:
+ 1.0  1.0
+ 1.0  1.0
+
+julia> pt = prop(reshape(1:12, (2, 2, 3)), 3)
+2×2×3 Array{Float64,3}:
+[:, :, 1] =
+ 0.1  0.3
+ 0.2  0.4
+
+[:, :, 2] =
+ 0.192308  0.269231
+ 0.230769  0.307692
+
+[:, :, 3] =
+ 0.214286  0.261905
+ 0.238095  0.285714
+
+julia> sum(pt, (1, 2))
+1×1×3 Array{Float64,3}:
+[:, :, 1] =
+ 1.0
+
+[:, :, 2] =
+ 1.0
+
+[:, :, 3] =
+ 1.0
+
+```
+"""
+
+prop(tbl::AbstractArray{<:Number}) = tbl / sum(tbl)
+
+function prop(tbl::AbstractArray{<:Number,N}, margin::Integer...) where N
+    lo, hi = extrema(margin)
+    (lo < 1 || hi > N) && throw(ArgumentError("margin must be a valid dimension"))
+    tbl ./ sum(tbl, tuple(setdiff(1:N, margin)...))
+end
+
+prop(tbl::NamedArray{<:Number}, margin::Integer...) =
+    NamedArray(prop(array(tbl), margin...), tbl.dicts, tbl.dimnames)
