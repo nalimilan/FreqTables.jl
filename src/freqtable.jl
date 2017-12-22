@@ -112,7 +112,7 @@ function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Boo
 	    end
 	end
 
-    if !isa(weights, UnitWeights) && length(weights) != leb[1]
+    if !isa(weights, UnitWeights) && length(weights) != len[1]
         error("'weights' (length $(length(weights))) must be of the same length as vectors (length $(len[1]))")
     end
 
@@ -140,8 +140,8 @@ function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Boo
 end
 
 freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
-                   weights::AbstractVector{T} = UnitWeights(),
-                   subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+          weights::AbstractVector{T} = UnitWeights(),
+          subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
     _freqtable(x, skipmissing, weights, subset)
 
 function freqtable(d::AbstractDataFrame, x::Symbol...; args...)

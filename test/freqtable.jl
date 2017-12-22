@@ -158,8 +158,6 @@ for docat in [false, true]
     @test tab == [28 22
                    3  8]
     @test names(tab) == [["setosa", "versicolor"], [false, true]]
-
-    i
     tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
     @test tab == [28 22
                    3  8]
