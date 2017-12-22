@@ -89,8 +89,16 @@ freqtable{T<:Real}(x::AbstractVector...;
     _freqtable(x, skipmissing, weights, subset)
 
 # Internal function needed for now so that n is inferred
-function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false)
+function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false,
+                       weights::AbstractVector{T} = UnitWeights(),
+                       subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
     n == 0 && throw(ArgumentError("at least one argument must be provided"))
+
+    if !isa(subset, Void)
+        x = map(y -> y[subset], x)
+        weights = weights[subset]
+    end
+
     len = map(length, x)
     miss = map(v -> eltype(v) >: Missing, x)
     lev = map(v -> eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : levels(v), x)
@@ -103,6 +111,10 @@ function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Boo
 	        error(string("arguments are not of the same length: ", tuple(len...)))
 	    end
 	end
+
+    if !isa(weights, UnitWeights) && length(weights) != leb[1]
+        error("'weights' (length $(length(weights))) must be of the same length as vectors (length $(len[1]))")
+    end
 
     sizes = cumprod([dims...])
     a = zeros(Int, dims)
@@ -120,14 +132,17 @@ function _freqtable{n}(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Boo
         end
 
         if !(missingpossible && skipmissing && anymiss)
-            a[el] += 1
+            a[el] += weights[i]
         end
     end
 
     NamedArray(a, lev, ntuple(i -> "Dim$i", n))
 end
 
-freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false) = _freqtable(x, skipmissing)
+freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
+                   weights::AbstractVector{T} = UnitWeights(),
+                   subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+    _freqtable(x, skipmissing, weights, subset)
 
 function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
     a = freqtable([d[y] for y in x]...; args...)
