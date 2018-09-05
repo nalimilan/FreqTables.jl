@@ -1,8 +1,7 @@
 import Base.ht_keyindex
 
 # Cf. https://github.com/JuliaStats/StatsBase.jl/issues/135
-immutable UnitWeights <: AbstractVector{Int}
-end
+struct UnitWeights <: AbstractVector{Int} end
 Base.getindex(w::UnitWeights, ::Integer...) = 1
 Base.getindex(w::UnitWeights, ::AbstractVector) = w
 
@@ -15,11 +14,11 @@ Base.@pure vectypes(T) = Tuple{map(U -> Vector{U}, T.parameters)...}
 function _freqtable(x::Tuple,
                     skipmissing::Bool = false,
                     weights::AbstractVector{<:Real} = UnitWeights(),
-                    subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
+                    subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing)
     n = length(x)
     n == 0 && throw(ArgumentError("at least one argument must be provided"))
 
-    if !isa(subset, Void)
+    if !isa(subset, Nothing)
         x = map(y -> y[subset], x)
         weights = weights[subset]
     end
@@ -50,12 +49,12 @@ function _freqtable(x::Tuple,
     end
 
     if skipmissing
-        filter!((k, v) -> !any(ismissing, k), d)
+        filter!(p -> !any(ismissing, p[1]), d)
     end
 
     keyvec = collect(keys(d))
 
-    dimnames = Vector{Vector}(n)
+    dimnames = Vector{Vector}(undef, n)
     for i in 1:n
         s = Set{vtypes.parameters[i]}()
         for j in 1:length(keyvec)
@@ -76,7 +75,7 @@ function _freqtable(x::Tuple,
     na = NamedArray(a, tuple(dimnames...)::vectypes(vtypes), ntuple(i -> "Dim$i", n))
 
     for (k, v) in d
-        na[k...] = v
+        na[Name.(k)...] = v
     end
 
     na
@@ -85,23 +84,25 @@ end
 freqtable(x::AbstractVector...;
           skipmissing::Bool = false,
           weights::AbstractVector{<:Real} = UnitWeights(),
-          subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+          subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
     _freqtable(x, skipmissing, weights, subset)
 
 # Internal function needed for now so that n is inferred
 function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool = false,
                     weights::AbstractVector{<:Real} = UnitWeights(),
-                    subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) where n
+                    subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing) where n
     n == 0 && throw(ArgumentError("at least one argument must be provided"))
 
-    if !isa(subset, Void)
+    if !isa(subset, Nothing)
         x = map(y -> y[subset], x)
         weights = weights[subset]
     end
 
     len = map(length, x)
     miss = map(v -> eltype(v) >: Missing, x)
-    lev = map(v -> eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : levels(v), x)
+    lev = map(x) do v
+        eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : allowmissing(levels(v))
+    end
     dims = map(length, lev)
     # First entry is for missing values (only correct and used if present)
     ord = map((v, d) -> Int[d; CategoricalArrays.order(v.pool)], x, dims)
@@ -121,7 +122,7 @@ function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool =
     missingpossible = any(miss)
 
     @inbounds for i in 1:len[1]
-        ref = x[1].refs[i]        
+        ref = x[1].refs[i]
         el = ord[1][ref + 1]
         anymiss = missingpossible & (ref <= 0)
 
@@ -141,7 +142,7 @@ end
 
 freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
           weights::AbstractVector{<:Real} = UnitWeights(),
-          subset::Union{Void, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+          subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
     _freqtable(x, skipmissing, weights, subset)
 
 function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
@@ -214,14 +215,13 @@ julia> sum(pt, (1, 2))
 
 ```
 """
-
 prop(tbl::AbstractArray{<:Number}) = tbl / sum(tbl)
 
 function prop(tbl::AbstractArray{<:Number,N}, margin::Integer...) where N
     lo, hi = extrema(margin)
     (lo < 1 || hi > N) && throw(ArgumentError("margin must be a valid dimension"))
-    tbl ./ sum(tbl, tuple(setdiff(1:N, margin)...))
+    tbl ./ sum(tbl, dims=tuple(setdiff(1:N, margin)...)::NTuple{N-length(margin),Int})
 end
 
 prop(tbl::NamedArray{<:Number}, margin::Integer...) =
-    NamedArray(prop(array(tbl), margin...), tbl.dicts, tbl.dimnames)
+    NamedArray(prop(convert(Array, tbl), margin...), tbl.dicts, tbl.dimnames)
