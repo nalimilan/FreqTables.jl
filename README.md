@@ -95,3 +95,29 @@ Species ╲ LongSepal │ false   true
 setosa              │    28     22
 versicolor          │     3      8
 ```
+
+Note: Use `Name(i)` to index into the table when using an Integer dimension
+```
+julia> df = DataFrame(A = 101:110, B = ["x","y","z"][rand(1:3, 10)]);
+
+julia> ft = freqtable(df, :A, :B)
+10×2 Named Array{Int64,2}
+Dim1 ╲ Dim2 │ x  z
+────────────┼─────
+101         │ 1  0
+102         │ 0  1
+103         │ 1  0
+104         │ 1  0
+105         │ 1  0
+106         │ 1  0
+107         │ 1  0
+108         │ 1  0
+109         │ 0  1
+110         │ 1  0
+
+julia> ft[Name(101), "x"]
+1
+
+julia> ft[101,"x"]
+ERROR: BoundsError: attempt to access 10×2 Array{Int64,2} at index [101, 1]
+```
