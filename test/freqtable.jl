@@ -1,5 +1,5 @@
 using FreqTables
-using Base.Test
+using Test
 
 x = repeat(["a", "b", "c", "d"], outer=[100]);
 # Values not in order to test discrepancy between index and levels with CategoricalArray
@@ -24,24 +24,24 @@ pt = @inferred prop(tab)
              0.075  0.05  0.05 0.075;
               0.05 0.075 0.075  0.05;
               0.05 0.075 0.075  0.05]
-pt = @inferred prop(tab, 2)
+pt = prop(tab, 2)
 @test pt == [0.3 0.2 0.2 0.3;
              0.3 0.2 0.2 0.3;
              0.2 0.3 0.3 0.2;
              0.2 0.3 0.3 0.2]
-pt = @inferred prop(tab, 1)
+pt = prop(tab, 1)
 @test pt == [0.3 0.2 0.2 0.3;
              0.3 0.2 0.2 0.3;
              0.2 0.3 0.3 0.2;
              0.2 0.3 0.3 0.2]
-pt = @inferred prop(tab, 1, 2)
+pt = prop(tab, 1, 2)
 @test pt == [1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0]
 
-tbl = @inferred prop(rand(5, 5, 5, 5), 1, 2)
-sumtbl = sum(tbl, (3,4))
+tbl = prop(rand(5, 5, 5, 5), 1, 2)
+sumtbl = sum(tbl, dims=(3,4))
 @test all(x -> x ≈ 1.0, sumtbl)
 
 @test_throws MethodError prop()
@@ -51,21 +51,21 @@ sumtbl = sum(tbl, (3,4))
 @test_throws ArgumentError prop([1,2,3], 2)
 @test_throws ArgumentError prop([1,2,3], 0)
 
-tab =freqtable(x, y,
-               subset=1:20,
-               weights=repeat([1, .5], outer=[10]))
+tab = freqtable(x, y,
+                subset=1:20,
+                weights=repeat([1, .5], outer=[10]))
 @test tab == [2.0 3.0
               1.0 1.5
               3.0 2.0
               1.5 1.0]
 @test names(tab) == [["a", "b", "c", "d"], ["C", "D"]]
-pt = @inferred prop(tab)
+pt = prop(tab)
 @test pt == [4 6; 2 3; 6 4; 3 2] / 30.0
-pt = @inferred prop(tab, 2)
+pt = prop(tab, 2)
 @test pt == [8  12; 4   6; 12  8; 6   4] / 30.0
-pt = @inferred prop(tab, 1)
+pt = prop(tab, 1)
 @test pt == [6 9; 6 9; 9 6; 9 6] / 15.0
-pt = @inferred prop(tab, 1, 2)
+pt = prop(tab, 1, 2)
 @test pt == [1.0 1.0; 1.0 1.0; 1.0 1.0; 1.0 1.0]
 
 using CategoricalArrays
@@ -85,9 +85,9 @@ tab = @inferred freqtable(cx, cy)
               20 30 30 20]
 @test names(tab) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
 
-tab =freqtable(cx, cy,
-               subset=1:20,
-               weights=repeat([1, .5], outer=[10]))
+tab = freqtable(cx, cy,
+                subset=1:20,
+                weights=repeat([1, .5], outer=[10]))
 @test tab == [0.0 0.0 2.0 3.0
               0.0 0.0 1.0 1.5
               0.0 0.0 3.0 2.0
@@ -100,7 +100,7 @@ const ≅ = isequal
 mx = Array{Union{String, Missing}}(x)
 my = Array{Union{String, Missing}}(y)
 mx[1] = missing
-my[[1, 10, 20, 400]] = missing
+my[[1, 10, 20, 400]] .= missing
 
 mcx = categorical(mx)
 mcy = categorical(my)
@@ -143,7 +143,8 @@ tabc = freqtable(mcx, mcy, skipmissing=true)
 using DataFrames, CSV
 
 for docat in [false, true]
-    iris = CSV.read(joinpath(Pkg.dir("DataFrames"), "test/data/iris.csv"), categorical=docat);
+    iris = CSV.read(joinpath(dirname(pathof(DataFrames)), "../test/data/iris.csv"),
+                    categorical=docat);
     if docat
         iris[:LongSepal] = categorical(iris[:SepalLength] .> 5.0)
     else
