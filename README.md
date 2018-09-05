@@ -96,7 +96,8 @@ setosa              │    28     22
 versicolor          │     3      8
 ```
 
-Note: Use `Name(i)` to index into the table when using an Integer dimension
+Note that when one of the input variables contains integers, `Name(i)` has to be used
+when indexing into the table to prevent `i` to be interpreted as a numeric index:
 ```
 julia> df = DataFrame(A = 101:103, B = ["x","y","y"]);
 
