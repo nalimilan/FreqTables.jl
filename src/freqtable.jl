@@ -100,7 +100,9 @@ function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool =
 
     len = map(length, x)
     miss = map(v -> eltype(v) >: Missing, x)
-    lev = map(v -> eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : levels(v), x)
+    lev = map(x) do v
+        eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : allowmissing(levels(v))
+    end
     dims = map(length, lev)
     # First entry is for missing values (only correct and used if present)
     ord = map((v, d) -> Int[d; CategoricalArrays.order(v.pool)], x, dims)
@@ -218,7 +220,7 @@ prop(tbl::AbstractArray{<:Number}) = tbl / sum(tbl)
 function prop(tbl::AbstractArray{<:Number,N}, margin::Integer...) where N
     lo, hi = extrema(margin)
     (lo < 1 || hi > N) && throw(ArgumentError("margin must be a valid dimension"))
-    tbl ./ sum(tbl, dims=tuple(setdiff(1:N, margin)...))
+    tbl ./ sum(tbl, dims=tuple(setdiff(1:N, margin)...)::NTuple{N-length(margin),Int})
 end
 
 prop(tbl::NamedArray{<:Number}, margin::Integer...) =
