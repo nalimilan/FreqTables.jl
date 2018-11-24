@@ -164,7 +164,11 @@ for docat in [false, true]
                            3  8]
     @test names(tab[1:2, :]) == [["setosa", "versicolor"], [false, true]]
 
+    iris_nt = (Species = iris[:Species], LongSepal = iris[:LongSepal])
+    @test freqtable(iris, :Species, :LongSepal) == freqtable(iris_nt, :Species, :LongSepal)
+
     @test_throws ArgumentError freqtable(iris)
+    @test_throws ArgumentError freqtable(nothing, :Species, :LongSepal)
 end
 
 # Issue #5
@@ -186,4 +190,3 @@ intft = freqtable(df, :A, :B)
 
 @test_throws BoundsError intft[101,"x"]
 @test intft[Name(101),"x"] == 1
-
