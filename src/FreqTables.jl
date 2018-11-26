@@ -1,6 +1,6 @@
 module FreqTables
     using CategoricalArrays
-    using DataFrames
+    using Tables
     using NamedArrays
 
     include("freqtable.jl")

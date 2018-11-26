@@ -145,8 +145,10 @@ freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
           subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
     _freqtable(x, skipmissing, weights, subset)
 
-function freqtable(d::AbstractDataFrame, x::Symbol...; args...)
-    a = freqtable([d[y] for y in x]...; args...)
+function freqtable(d, x::Symbol...; args...)
+    Tables.istable(d) || throw(ArgumentError("data must be a table"))
+    cols = Tables.columns(d)
+    a = freqtable((getproperty(cols, y) for y in x)...; args...)
     setdimnames!(a, x)
     a
 end
