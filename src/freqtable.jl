@@ -148,7 +148,7 @@ freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
 function freqtable(d, x::Symbol...; args...)
     Tables.istable(d) || throw(ArgumentError("data must be a table"))
     cols = Tables.columns(d)
-    a = freqtable([getproperty(cols, y) for y in x]...; args...)
+    a = freqtable((getproperty(cols, y) for y in x)...; args...)
     setdimnames!(a, x)
     a
 end
