@@ -24,23 +24,23 @@ pt = @inferred prop(tab)
              0.075  0.05  0.05 0.075;
               0.05 0.075 0.075  0.05;
               0.05 0.075 0.075  0.05]
-pt = @inferred prop(tab, 2)
+pt = @inferred prop(tab, margins=2)
 @test pt == [0.3 0.2 0.2 0.3;
              0.3 0.2 0.2 0.3;
              0.2 0.3 0.3 0.2;
              0.2 0.3 0.3 0.2]
-pt = @inferred prop(tab, 1)
+pt = @inferred prop(tab, margins=1)
 @test pt == [0.3 0.2 0.2 0.3;
              0.3 0.2 0.2 0.3;
              0.2 0.3 0.3 0.2;
              0.2 0.3 0.3 0.2]
-pt = @inferred prop(tab, 1, 2)
+pt = @inferred prop(tab, margins=(1, 2))
 @test pt == [1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0]
 
-tbl = @inferred prop(rand(5, 5, 5, 5), 1, 2)
+tbl = @inferred prop(rand(5, 5, 5, 5), margins=(1, 2))
 sumtbl = sum(tbl, dims=(3,4))
 @test all(x -> x ≈ 1.0, sumtbl)
 
@@ -48,8 +48,10 @@ sumtbl = sum(tbl, dims=(3,4))
 @test_throws MethodError prop(("a","b"))
 @test_throws MethodError prop((1, 2))
 @test_throws MethodError prop([1,2,3], "a")
-@test_throws ArgumentError prop([1,2,3], 2)
-@test_throws ArgumentError prop([1,2,3], 0)
+@test_throws MethodError prop([1,2,3], 1, 2)
+@test_throws ArgumentError prop([1,2,3], margins=2)
+@test_throws ArgumentError prop([1,2,3], margins=0)
+
 
 tab = @inferred freqtable(x, y,
                           subset=1:20,
@@ -61,11 +63,11 @@ tab = @inferred freqtable(x, y,
 @test names(tab) == [["a", "b", "c", "d"], ["C", "D"]]
 pt = @inferred prop(tab)
 @test pt == [4 6; 2 3; 6 4; 3 2] / 30.0
-pt = @inferred prop(tab, 2)
+pt = @inferred prop(tab, margins=2)
 @test pt == [8  12; 4   6; 12  8; 6   4] / 30.0
-pt = @inferred prop(tab, 1)
+pt = @inferred prop(tab, margins=1)
 @test pt == [6 9; 6 9; 9 6; 9 6] / 15.0
-pt = @inferred prop(tab, 1, 2)
+pt = @inferred prop(tab, margins=(1, 2))
 @test pt == [1.0 1.0; 1.0 1.0; 1.0 1.0; 1.0 1.0]
 
 using CategoricalArrays
@@ -139,36 +141,40 @@ tabc = @inferred freqtable(mcx, mcy, skipmissing=true)
                       20 29 29 20]
 
 
-using DataFrames, CSV
+using DataFrames
 
 for docat in [false, true]
-    iris = CSV.read(joinpath(dirname(pathof(DataFrames)), "../test/data/iris.csv"),
-                    DataFrame,
-                    categorical=docat, allowmissing=:none);
+    iris = DataFrame(SepalLength=[4.8, 4.3, 5.8, 5.7, 5.4, 5.7, 5.7, 6.2, 
+                                  5.1, 5.7, 6.3, 5.8, 7.1, 6.3, 6.5, 7.6, 4.9],
+                     SepalWidth=[3, 3, 4, 4.4, 3.9, 3, 2.9, 2.9, 2.5, 2.8, 
+                                 3.3, 2.7, 3, 2.9, 3, 3, 2.5],
+                     Species=["Iris-setosa", "Iris-setosa", "Iris-setosa", 
+                              "Iris-setosa", "Iris-setosa", "Iris-versicolor", 
+                              "Iris-versicolor", "Iris-versicolor", "Iris-versicolor", 
+                              "Iris-versicolor", "Iris-virginica", "Iris-virginica", 
+                              "Iris-virginica", "Iris-virginica", "Iris-virginica", 
+                              "Iris-virginica", "Iris-virginica"])
     if docat
         iris[:LongSepal] = categorical(iris[:SepalLength] .> 5.0)
     else
         iris[:LongSepal] = iris[:SepalLength] .> 5.0
     end
     tab = freqtable(iris, :Species, :LongSepal)
-    @test tab == [28 22
-                   3 47
-                   1 49]
-    @test names(tab) == [["setosa", "versicolor", "virginica"], [false, true]]
-    tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
-    @test tab[1:2, :] == [28 22
-                           3  8]
-    @test names(tab[1:2, :]) == [["setosa", "versicolor"], [false, true]]
-    tab = freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
-    @test tab[1:2, :] == [28 22
-                           3  8]
-    @test names(tab[1:2, :]) == [["setosa", "versicolor"], [false, true]]
-
+    @test tab == [2 3
+                  0 5
+                  1 6]
+    @test names(tab) == [["Iris-setosa", "Iris-versicolor", "Iris-virginica"], [false, true]]
+    tab = freqtable(iris, :Species, :LongSepal, subset=iris[:SepalWidth] .< 3.8)
+    @test tab == [2 0
+                  0 5
+                  1 6]
+    @test names(tab[1:2, :]) == [["Iris-setosa", "Iris-versicolor"], [false, true]]
     iris_nt = (Species = iris[:Species], LongSepal = iris[:LongSepal])
     @test freqtable(iris, :Species, :LongSepal) == freqtable(iris_nt, :Species, :LongSepal)
 
     @test_throws ArgumentError freqtable(iris)
     @test_throws ArgumentError freqtable(nothing, :Species, :LongSepal)
+                
 end
 
 # Issue #5
@@ -190,3 +196,24 @@ intft = freqtable(df, :A, :B)
 
 @test_throws BoundsError intft[101,"x"]
 @test intft[Name(101),"x"] == 1
+    
+# proptable
+df = DataFrame(x = [1, 2, 1, 2], y = [1, 1, 2, 2], z = ["a", "a", "c", "d"])
+
+tab = proptable(df, :x, :z)    
+@test tab == [0.25 0.25 0.0
+              0.25 0.0  0.25]
+@test names(tab) == [[1, 2], ["a", "c", "d"]]
+    
+tab = proptable(df, :x, :z, margins=1)    
+@test tab == [0.5 0.5 0.0
+              0.5 0.0 0.5]
+
+tab = proptable(df, :x, :y, margins=(1,2))    
+@test tab == [1.0 1.0
+              1.0 1.0]
+@test names(tab) == [[1, 2], [1, 2]]
+
+@test_throws ArgumentError proptable(df)
+@test_throws ArgumentError proptable(nothing, :x, :y)
+@test_throws MethodError proptable(df, :x, :y, 1, 2)

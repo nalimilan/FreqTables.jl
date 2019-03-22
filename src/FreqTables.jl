@@ -5,5 +5,5 @@ module FreqTables
 
     include("freqtable.jl")
 
-    export freqtable, prop
+    export freqtable, proptable, prop
 end # module
