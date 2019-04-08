@@ -202,19 +202,18 @@ end
     prop(tbl::AbstractArray{<:Number};
          margins = nothing)
 
-Create table of proportions from a table `tbl` with margins generated for
-dimensions specified by `margins`. 
+Create a table of proportions from an array `tbl`.
 
-`margins` must be `nothing` (the default), an `Integer`, or an iterable of `Integer`s.        
-
-If `margins` is `nothing`, proportions over the whole `tbl` are computed.
-In particular for a two-dimensional array, when `margins` is `1` row proportions are 
+If `margins` is `nothing` (the default), proportions over the whole `tbl` are computed.
+If `margins` is an `Integer`, or an iterable of `Integer`s, proportions
+sum to `1` over dimensions specified by `margins`.
+In particular for a two-dimensional array, when `margins` is `1` row proportions are
 calculated, and when `margins` is `2` column proportions are calculated.
     
-`prop` does not check if `tbl` contains non-negative values.
+This function does not check that `tbl` contains only non-negative values.
 
-Calculating `sum` over the result of `prop` over dimensions that are complement of `margins`
-produces `AbstractArray` containing only `1.0`, see last example below.
+Calculating `sum(proptable(..., margins=margins), dims=dims)` with `dims` equal to the complement
+of `margins` produces an array containing only `1.0` (see last example below).
 
 **Examples**
 
@@ -293,21 +292,21 @@ prop(tbl::NamedArray{<:Number}; margins=nothing) =
               weights::AbstractVector{<:Real} = UnitWeights(),
               subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing])
 
-Create a frequency table of proportions from vectors or table columns with margins generated 
-for dimensions specified by `margins`. `proptable` is equivalent to calling 
-`prop(freqtable(...), margins=margins)`.
+Create a frequency table of proportions from vectors or table columns.
+This is equivalent to calling `prop(freqtable(...), margins=margins)`.
 
-`margins` must be `nothing` (the default), an `Integer`, or an iterable of `Integer`s.
+`t` can be any type of table supported by the [Tables.jl](https://github.com/JuliaData/Tables.jl)
+interface.
 
-If `margins` is `nothing`, proportions over the whole table are computed. When two vectors are
-passed and `margins` is `1`, row proportions are calculated, and when `margins` is `2`
-column proportions are calculated. More generally, the resulting array will have sums equal 
-to one for all dimensions not specified in `margins`.
+If `margins` is `nothing` (the default), proportions over the whole table are computed.
+If `margins` is an `Integer`, or an iterable of `Integer`s, proportions
+sum to `1` over dimensions specified by `margins`.
+In particular for a two-dimensional array, when `margins` is `1` row proportions are
+calculated, and when `margins` is `2` column proportions are calculated.
 
-`t` can be any type of table supported by the [Tables.jl](https://github.com/JuliaData/Tables.jl) interface.
-            
-Calculating `sum` over the result of `proptable` over dimensions that are complement of `margins` produces `AbstractArray` containing only `1.0`. See last example below.
-                        
+Calculating `sum(proptable(..., margins=margins), dims=dims)` with `dims` equal to the complement
+of `margins` produces an array containing only `1.0` (see last example below).
+
 **Examples**
 
 ```jldoctest
