@@ -192,7 +192,7 @@ freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
 
 function freqtable(t, cols::Symbol...; args...)
     all_cols = Tables.columns(t)
-    a = freqtable((getproperty(all_cols, y) for y in cols)...; args...)
+    a = freqtable((Tables.getcolumn(all_cols, y) for y in cols)...; args...)
     setdimnames!(a, cols)
     a
 end
