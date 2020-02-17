@@ -168,7 +168,7 @@ for docat in [false, true]
     @test tab == [2 0
                   0 5
                   1 6]
-    # @test names(tab[1:2, :]) == [["Iris-setosa", "Iris-versicolor"], [false, true]]
+    @test names(tab[1:2, :]) == [["Iris-setosa", "Iris-versicolor"], [false, true]]
     iris_nt = (Species = iris[:Species], LongSepal = iris[:LongSepal])
     @test freqtable(iris, :Species, :LongSepal) == freqtable(iris_nt, :Species, :LongSepal)
 
