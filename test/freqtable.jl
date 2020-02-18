@@ -8,16 +8,20 @@ y = repeat(["D", "C", "A", "B"], inner=[10], outer=[10]);
 tab = @inferred freqtable(x)
 @test tab == [100, 100, 100, 100]
 @test names(tab) == [["a", "b", "c", "d"]]
+@test names(tab, 1) isa typeof(x)
 @test @inferred prop(tab) == [0.25, 0.25, 0.25, 0.25]
 tab = @inferred freqtable(y)
 @test tab == [100, 100, 100, 100]
 @test names(tab) == [["A", "B", "C", "D"]]
+@test names(tab, 1) isa typeof(y)
 tab = @inferred freqtable(x, y)
 @test tab == [30 20 20 30;
               30 20 20 30;
               20 30 30 20;
               20 30 30 20]
 @test names(tab) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
+@test names(tab, 1) isa typeof(x)
+@test names(tab, 2) isa typeof(y)
 
 pt = @inferred prop(tab)
 @test pt == [0.075  0.05  0.05 0.075;
@@ -77,15 +81,29 @@ cy = CategoricalArray(y)
 tab = @inferred freqtable(cx)
 @test tab == [100, 100, 100, 100]
 @test names(tab) == [["a", "b", "c", "d"]]
+@test names(tab, 1) isa typeof(x)
 tab = @inferred freqtable(cy)
 @test tab == [100, 100, 100, 100]
 @test names(tab) == [["A", "B", "C", "D"]]
+@test names(tab, 1) isa typeof(y)
 tab = @inferred freqtable(cx, cy)
 @test tab == [30 20 20 30;
               30 20 20 30;
               20 30 30 20;
               20 30 30 20]
 @test names(tab) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
+@test names(tab, 1) isa typeof(x)
+@test names(tab, 2) isa typeof(y)
+tab2 = @inferred freqtable(cx, y)
+@test tab2 == tab
+@test names(tab2) == names(tab)
+@test names(tab2, 1) isa typeof(x)
+@test names(tab2, 2) isa typeof(y)
+tab2 = @inferred freqtable(x, cy)
+@test tab2 == tab
+@test names(tab2) == names(tab)
+@test names(tab2, 1) isa typeof(x)
+@test names(tab2, 2) isa typeof(y)
 
 tab = @inferred freqtable(cx, cy,
                           subset=1:20,
@@ -95,6 +113,8 @@ tab = @inferred freqtable(cx, cy,
               0.0 0.0 3.0 2.0
               0.0 0.0 1.5 1.0]
 @test names(tab) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
+@test names(tab, 1) isa typeof(x)
+@test names(tab, 2) isa typeof(y)
 
 
 const ≅ = isequal
@@ -110,10 +130,12 @@ tab = @inferred freqtable(mx)
 tabc = @inferred freqtable(mcx)
 @test tab == tabc == [99, 100, 100, 100, 1]
 @test names(tab) ≅ names(tabc) ≅ [["a", "b", "c", "d", missing]]
+@test names(tab, 1) isa typeof(mx)
 tab = @inferred freqtable(my)
 tabc = @inferred freqtable(mcy)
 @test tab == tabc == [100, 99, 99, 98, 4]
 @test names(tab) ≅ names(tabc) ≅ [["A", "B", "C", "D", missing]]
+@test names(tab, 1) isa typeof(my)
 tab = @inferred freqtable(mx, my)
 tabc = @inferred freqtable(mcx, mcy)
 @test tab == tabc == [30 20 20 29 0;
@@ -123,15 +145,30 @@ tabc = @inferred freqtable(mcx, mcy)
                       0   0  0  0 1]
 @test names(tab) ≅ names(tabc) ≅ [["a", "b", "c", "d", missing],
                                   ["A", "B", "C", "D", missing]]
+@test names(tab, 1) isa typeof(mx)
+@test names(tab, 2) isa typeof(my)
+tab = @inferred freqtable(mx, my)
+tab2 = @inferred freqtable(mcx, my)
+@test tab2 == tab
+@test names(tab2) ≅ names(tab)
+@test names(tab2, 1) isa typeof(mx)
+@test names(tab2, 2) isa typeof(my)
+tab2 = @inferred freqtable(mx, mcy)
+@test tab2 == tab
+@test names(tab2) ≅ names(tab)
+@test names(tab2, 1) isa typeof(mx)
+@test names(tab2, 2) isa typeof(my)
 
 
 tab = @inferred freqtable(mx, skipmissing=true)
 tabc = @inferred freqtable(mcx, skipmissing=true)
 @test tab == tabc == [99, 100, 100, 100]
 @test names(tab) ≅ names(tabc) ≅ [["a", "b", "c", "d"]]
+@test names(tab, 1) isa typeof(mx)
 tab = @inferred freqtable(my, skipmissing=true)
 tabc = @inferred freqtable(mcy, skipmissing=true)
 @test names(tab) ≅ names(tabc) ≅ [["A", "B", "C", "D"]]
+@test names(tab, 1) isa typeof(my)
 @test tab == tabc == [100, 99, 99, 98]
 tab = @inferred freqtable(mx, my, skipmissing=true)
 tabc = @inferred freqtable(mcx, mcy, skipmissing=true)
@@ -139,6 +176,20 @@ tabc = @inferred freqtable(mcx, mcy, skipmissing=true)
                       30 20 20 29;
                       20 30 30 20;
                       20 29 29 20]
+@test names(tab) == names(tabc) == [["a", "b", "c", "d"],
+                                    ["A", "B", "C", "D"]]
+@test names(tab, 1) isa typeof(mx)
+@test names(tab, 2) isa typeof(my)
+tab2 = @inferred freqtable(mcx, my, skipmissing=true)
+@test tab2 == tab
+@test names(tab2) ≅ names(tab)
+@test names(tab2, 1) isa typeof(mx)
+@test names(tab2, 2) isa typeof(my)
+tab2 = @inferred freqtable(mx, mcy, skipmissing=true)
+@test tab2 == tab
+@test names(tab2) ≅ names(tab)
+@test names(tab2, 1) isa typeof(mx)
+@test names(tab2, 2) isa typeof(my)
 
 
 using DataFrames

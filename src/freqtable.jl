@@ -8,7 +8,10 @@ Base.getindex(w::UnitWeights, ::AbstractVector) = w
 # About the type inference limitation which prompts this workaround, see
 # https://github.com/JuliaLang/julia/issues/10880
 Base.@pure eltypes(T) = Tuple{map(eltype, T.parameters)...}
-Base.@pure vectypes(T) = Tuple{map(U -> Vector{U}, T.parameters)...}
+unwrapped_eltype(::Type{<:AbstractArray{T}}) where {T} = T
+unwrapped_eltype(::Type{<:AbstractCategoricalArray{T}}) where {T} = T
+Base.@pure unwrapped_eltypes(T) = Tuple{map(unwrapped_eltype, T.parameters)...}
+Base.@pure vectypes(T) = Tuple{map(U -> Vector{unwrapped_eltype(U)}, T.parameters)...}
 
 # Internal function needed for now so that n is inferred
 function _freqtable(x::Tuple,
@@ -24,7 +27,8 @@ function _freqtable(x::Tuple,
     end
 
     l = map(length, x)
-    vtypes = eltypes(typeof(x))
+    ineltypes = eltypes(typeof(x))
+    outeltypes = unwrapped_eltypes(typeof(x))
 
     for i in 1:n
         if l[1] != l[i]
@@ -36,7 +40,7 @@ function _freqtable(x::Tuple,
         error("'weights' (length $(length(weights))) must be of the same length as vectors (length $(l[1]))")
     end
 
-    d = Dict{vtypes, eltype(weights)}()
+    d = Dict{ineltypes, eltype(weights)}()
 
     for (i, el) in enumerate(zip(x...))
         index = ht_keyindex(d, el)
@@ -54,28 +58,30 @@ function _freqtable(x::Tuple,
 
     keyvec = collect(keys(d))
 
-    dimnames = Vector{Vector}(undef, n)
-    for i in 1:n
-        s = Set{vtypes.parameters[i]}()
+    dimnames = ntuple(n) do i
+        s = Set{ineltypes.parameters[i]}()
         for j in 1:length(keyvec)
             push!(s, keyvec[j][i])
         end
 
-        # convert() is needed for Union{T, Missing}, which currently gives a Vector{Any}
-        # which breaks inference of the return type
-        dimnames[i] = convert(Vector{vtypes.parameters[i]}, unique(s))
+        names = collect(ineltypes.parameters[i], s)
         try
-            sort!(dimnames[i])
+            sort!(names)
         catch err
             err isa MethodError || rethrow(err)
         end
-    end
+        # Unwrap categorical values
+        # This has to be done last so that sort! uses custom order of values
+        convert(Vector{outeltypes.parameters[i]}, names)
+    end::vectypes(typeof(x))
 
     a = zeros(eltype(weights), map(length, dimnames)...)::Array{eltype(weights), n}
-    na = NamedArray(a, tuple(dimnames...)::vectypes(vtypes), ntuple(i -> "Dim$i", n))
+    na = NamedArray(a, dimnames, ntuple(i -> "Dim$i", n))
 
     for (k, v) in d
-        na[Name.(k)...] = v
+        # Convert name to target type (needed due to unwrapping of categorical values)
+        name = convert(outeltypes, k)
+        na[Name.(name)...] = v
     end
 
     na
@@ -146,7 +152,11 @@ function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool =
     len = map(length, x)
     miss = map(v -> eltype(v) >: Missing, x)
     lev = map(x) do v
-        eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : allowmissing(levels(v))
+        if eltype(v) >: Missing
+            skipmissing ? allowmissing(levels(v)) : [levels(v); missing]
+        else
+            levels(v)
+        end
     end
     dims = map(length, lev)
     # First entry is for missing values (only correct and used if present)
