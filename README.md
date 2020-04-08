@@ -6,7 +6,7 @@
 
 This package allows computing one- or multi-way frequency tables (a.k.a. contingency or pivot tables) from
 any type of vector or array. It includes support for [`CategoricalArray`](https://github.com/JuliaData/CategoricalArrays.jl)
-and [`DataFrame`](https://github.com/JuliaData/DataFrames.jl), as well as for weighted counts.
+and [`Tables.jl`](https://github.com/JuliaData/Tables.jl) compliant objects, as well as for weighted counts.
 
 Tables are represented as [`NamedArray`](https://github.com/davidavdav/NamedArrays.jl/) objects.
 
@@ -53,7 +53,7 @@ b           │ 3  2
 c           │ 2  3
 d           │ 2  3
 
-julia> prop(tbl2, 2)
+julia> prop(tbl2, margins=2)
 4×2 Named Array{Float64,2}
 Dim1 ╲ Dim2 │   A    B
 ────────────┼─────────
@@ -72,13 +72,13 @@ c           │ 2.0  3.0
 d           │ 1.0  1.5
 ```
 
-For convenience, when working with a data frame, one can also pass a `DataFrame` object and columns as symbols:
+For convenience, when working with tables (like e.g. a `DataFrame`) one can pass a table object and columns as symbols:
 ```julia
 julia> using DataFrames, CSV
 
-julia> iris = CSV.read(joinpath(Pkg.dir("DataFrames"), "test/data/iris.csv"));
+julia> iris = DataFrame(CSV.File(joinpath(dirname(pathof(DataFrames)), "../docs/src/assets/iris.csv")));
 
-julia> iris[:LongSepal] = iris[:SepalLength] .> 5.0;
+julia> iris.LongSepal = iris.SepalLength .> 5.0;
 
 julia> freqtable(iris, :Species, :LongSepal)
 3×2 Named Array{Int64,2}
@@ -88,7 +88,7 @@ setosa              │    28     22
 versicolor          │     3     47
 virginica           │     1     49
 
-julia> freqtable(iris, :Species, :LongSepal, subset=iris[:PetalLength] .< 4.0)
+julia> freqtable(iris, :Species, :LongSepal, subset=iris.PetalLength .< 4.0)
 2×2 Named Array{Int64,2}
 Species ╲ LongSepal │ false   true
 ────────────────────┼─────────────
