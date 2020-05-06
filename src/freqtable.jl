@@ -149,8 +149,6 @@ function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool =
         eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : allowmissing(levels(v))
     end
     dims = map(length, lev)
-    # First entry is for missing values (only correct and used if present)
-    ord = map((v, d) -> Int[d; CategoricalArrays.order(v.pool)], x, dims)
 
 	for i in 1:n
 	    if len[1] != len[i]
@@ -168,13 +166,15 @@ function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool =
 
     @inbounds for i in 1:len[1]
         ref = x[1].refs[i]
-        el = ord[1][ref + 1]
-        anymiss = missingpossible & (ref <= 0)
+        miss = missingpossible & (ref <= 0)
+        el = ifelse(miss, dims[1], ref)
+        anymiss = miss
 
         for j in 2:n
             ref = x[j].refs[i]
-            anymiss |= missingpossible & (ref <= 0)
-            el += (ord[j][ref + 1] - 1) * sizes[j - 1]
+            miss = missingpossible & (ref <= 0)
+            el += (ifelse(miss, dims[j], ref) - 1) * sizes[j - 1]
+            anymiss |= miss
         end
 
         if !(missingpossible && skipmissing && anymiss)
