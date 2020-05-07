@@ -83,19 +83,19 @@ end
 
 """
     freqtable(x::AbstractVector...;
-              skipmissing::Bool = false, 
-              weights::AbstractVector{<:Real} = UnitWeights(),
-              subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing])
-        
-    freqtable(t, cols::Symbol...; 
-              skipmissing::Bool = false, 
+              skipmissing::Bool = false,
               weights::AbstractVector{<:Real} = UnitWeights(),
               subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing])
 
-Create frequency table from vectors or table columns.         
-        
+    freqtable(t, cols::Symbol...;
+              skipmissing::Bool = false,
+              weights::AbstractVector{<:Real} = UnitWeights(),
+              subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing])
+
+Create frequency table from vectors or table columns.
+
 `t` can be any type of table supported by the [Tables.jl](https://github.com/JuliaData/Tables.jl) interface.
-        
+
 **Examples**
 
 ```jldoctest
@@ -116,14 +116,14 @@ x ╲ y │ 1  2
 ──────┼─────
 1     │ 1  0
 2     │ 1  2
-        
+
 julia> freqtable(df, :x, :y, subset=df.x .> 1)
 1×2 Named Array{Int64,2}
 x ╲ y │ 1  2
 ──────┼─────
 2     │ 1  2
-        
-```        
+
+```
 """
 
 freqtable(x::AbstractVector...;
@@ -208,7 +208,7 @@ If `margins` is an `Integer`, or an iterable of `Integer`s, proportions
 sum to `1` over dimensions specified by `margins`.
 In particular for a two-dimensional array, when `margins` is `1` row proportions are
 calculated, and when `margins` is `2` column proportions are calculated.
-    
+
 This function does not check that `tbl` contains only non-negative values.
 
 Calculating `sum(proptable(..., margins=margins), dims=dims)` with `dims` equal to the complement
@@ -268,7 +268,7 @@ julia> sum(pt, dims=(1, 2))
 function prop(tbl::AbstractArray{<:Number,N}; margins=nothing) where N
     if margins === nothing
         return tbl / sum(tbl)
-    else            
+    else
         lo, hi = extrema(margins)
         (lo < 1 || hi > N) && throw(ArgumentError("margins must be a valid dimension"))
         return tbl ./ sum(tbl, dims=tuple(setdiff(1:N, margins)...)::NTuple{N-length(margins),Int})
@@ -279,15 +279,15 @@ prop(tbl::NamedArray{<:Number}; margins=nothing) =
     NamedArray(prop(convert(Array, tbl); margins=margins), tbl.dicts, tbl.dimnames)
 
 """
-    proptable(x::AbstractVector...; 
+    proptable(x::AbstractVector...;
               margins = nothing,
-              skipmissing::Bool = false, 
+              skipmissing::Bool = false,
               weights::AbstractVector{<:Real} = UnitWeights(),
               subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing])
-        
-    proptable(t, cols::Symbol...; 
+
+    proptable(t, cols::Symbol...;
               margins = nothing,
-              skipmissing::Bool = false, 
+              skipmissing::Bool = false,
               weights::AbstractVector{<:Real} = UnitWeights(),
               subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing])
 
@@ -317,7 +317,7 @@ Dim1  │
 2     │ 0.333333
 3     │ 0.333333
 4     │ 0.166667
-            
+
 julia> df = DataFrame(x=[1, 2, 2, 2, 1, 1], y=[1, 2, 1, 2, 2, 2], z=[1, 1, 1, 2, 2, 1]);
 
 julia> proptable(df, :x, :y)
@@ -353,7 +353,7 @@ Dim1 ╲ Dim2 │   1    2
 ────────────┼─────────
 1           │ 1.0  NaN
 2           │ 1.0  1.0
-            
+
 julia> proptable(df.x, df.y, df.z)
 2×2×2 Named Array{Float64,3}
 
@@ -382,8 +382,8 @@ Dim1 ╲ Dim2 │   1    2
 Dim1 ╲ Dim2 │   1    2
 ────────────┼─────────
 1           │ 0.0  0.5
-2           │ 0.0  0.5            
-            
+2           │ 0.0  0.5
+
 julia> sum(pt, dims=3)
 2×2×1 Named Array{Float64,3}
 
@@ -392,16 +392,16 @@ Dim1 ╲ Dim2 │   1    2
 ────────────┼─────────
 1           │ 1.0  1.0
 2           │ 1.0  1.0
-            
-``` 
+
+```
 """
 proptable(x::AbstractVector...;
           margins = nothing,
           skipmissing::Bool = false,
           weights::AbstractVector{<:Real} = UnitWeights(),
-          subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing) = 
-    prop(freqtable(x..., 
+          subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
+    prop(freqtable(x...,
                    skipmissing=skipmissing, weights=weights, subset=subset), margins=margins)
-            
-proptable(t, cols::Symbol...; margins=nothing, kwargs...) = 
+
+proptable(t, cols::Symbol...; margins=nothing, kwargs...) =
     prop(freqtable(t, cols...; kwargs...), margins=margins)
