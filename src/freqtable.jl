@@ -144,7 +144,7 @@ function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool =
     end
 
     len = map(length, x)
-    miss = map(v -> eltype(v) >: Missing, x)
+    allowsmissing = map(v -> eltype(v) >: Missing, x)
     lev = map(x) do v
         eltype(v) >: Missing && !skipmissing ? [levels(v); missing] : allowmissing(levels(v))
     end
@@ -162,16 +162,16 @@ function _freqtable(x::NTuple{n, AbstractCategoricalVector}, skipmissing::Bool =
 
     sizes = cumprod([dims...])
     a = zeros(eltype(weights), dims)
-    missingpossible = any(miss)
+    missingpossible = any(allowsmissing)
 
     @inbounds for i in 1:len[1]
-        ref = x[1].refs[i]
+        ref = Int(x[1].refs[i])
         miss = missingpossible & (ref <= 0)
         el = ifelse(miss, dims[1], ref)
         anymiss = miss
 
         for j in 2:n
-            ref = x[j].refs[i]
+            ref = Int(x[j].refs[i])
             miss = missingpossible & (ref <= 0)
             el += (ifelse(miss, dims[j], ref) - 1) * sizes[j - 1]
             anymiss |= miss
