@@ -144,15 +144,15 @@ tabc = @inferred freqtable(mcx, mcy, skipmissing=true)
 using DataFrames
 
 for docat in [false, true]
-    iris = DataFrame(SepalLength=[4.8, 4.3, 5.8, 5.7, 5.4, 5.7, 5.7, 6.2, 
+    iris = DataFrame(SepalLength=[4.8, 4.3, 5.8, 5.7, 5.4, 5.7, 5.7, 6.2,
                                   5.1, 5.7, 6.3, 5.8, 7.1, 6.3, 6.5, 7.6, 4.9],
-                     SepalWidth=[3, 3, 4, 4.4, 3.9, 3, 2.9, 2.9, 2.5, 2.8, 
+                     SepalWidth=[3, 3, 4, 4.4, 3.9, 3, 2.9, 2.9, 2.5, 2.8,
                                  3.3, 2.7, 3, 2.9, 3, 3, 2.5],
-                     Species=["Iris-setosa", "Iris-setosa", "Iris-setosa", 
-                              "Iris-setosa", "Iris-setosa", "Iris-versicolor", 
-                              "Iris-versicolor", "Iris-versicolor", "Iris-versicolor", 
-                              "Iris-versicolor", "Iris-virginica", "Iris-virginica", 
-                              "Iris-virginica", "Iris-virginica", "Iris-virginica", 
+                     Species=["Iris-setosa", "Iris-setosa", "Iris-setosa",
+                              "Iris-setosa", "Iris-setosa", "Iris-versicolor",
+                              "Iris-versicolor", "Iris-versicolor", "Iris-versicolor",
+                              "Iris-versicolor", "Iris-virginica", "Iris-virginica",
+                              "Iris-virginica", "Iris-virginica", "Iris-virginica",
                               "Iris-virginica", "Iris-virginica"])
     if docat
         iris.LongSepal = categorical(iris.SepalLength .> 5.0)
@@ -174,7 +174,6 @@ for docat in [false, true]
 
     @test_throws ArgumentError freqtable(iris)
     @test_throws ArgumentError freqtable(nothing, :Species, :LongSepal)
-                
 end
 
 # Issue #5
@@ -196,20 +195,20 @@ intft = freqtable(df, :A, :B)
 
 @test_throws BoundsError intft[101,"x"]
 @test intft[Name(101),"x"] == 1
-    
+
 # proptable
 df = DataFrame(x = [1, 2, 1, 2], y = [1, 1, 2, 2], z = ["a", "a", "c", "d"])
 
-tab = proptable(df, :x, :z)    
+tab = proptable(df, :x, :z)
 @test tab == [0.25 0.25 0.0
               0.25 0.0  0.25]
 @test names(tab) == [[1, 2], ["a", "c", "d"]]
-    
-tab = proptable(df, :x, :z, margins=1)    
+
+tab = proptable(df, :x, :z, margins=1)
 @test tab == [0.5 0.5 0.0
               0.5 0.0 0.5]
 
-tab = proptable(df, :x, :y, margins=(1,2))    
+tab = proptable(df, :x, :y, margins=(1,2))
 @test tab == [1.0 1.0
               1.0 1.0]
 @test names(tab) == [[1, 2], [1, 2]]
