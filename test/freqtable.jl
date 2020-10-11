@@ -159,15 +159,17 @@ for docat in [false, true]
     else
         iris.LongSepal = iris.SepalLength .> 5.0
     end
-    tab = freqtable(iris, :Species, :LongSepal)
-    @test tab == freqtable(iris, "Species", "LongSepal") ==
-        freqtable(iris, "Species", :LongSepal) ==
-        freqtable(iris, :Species, "LongSepal")
-    @test tab == [2 3
-                  0 5
-                  1 6]
-    @test names(tab) == [["Iris-setosa", "Iris-versicolor", "Iris-virginica"], [false, true]]
-    @test (names(tab, 2) isa CategoricalArray) == docat
+    for cols in ((:Species, :LongSepal), ("Species", "LongSepal"),
+                 ("Species", :LongSepal), (:Species, "LongSepal"))
+        tab = freqtable(iris, cols...)
+        @test tab == [2 3
+                    0 5
+                    1 6]
+        @test dimnames(tab) == all(x -> x isa AbstractString, cols) ?
+            ["Species", "LongSepal"] : [:Species, :LongSepal]
+        @test names(tab) == [["Iris-setosa", "Iris-versicolor", "Iris-virginica"], [false, true]]
+        @test (names(tab, 2) isa CategoricalArray) == docat
+    end
 
     tab = freqtable(iris, :Species, :LongSepal, subset=iris.SepalWidth .< 3.8)
     @test tab == [2 0
@@ -205,13 +207,13 @@ intft = freqtable(df, :A, :B)
 # proptable
 df = DataFrame(x = [1, 2, 1, 2], y = [1, 1, 2, 2], z = ["a", "a", "c", "d"])
 
-tab = proptable(df, :x, :z)
-@test tab == proptable(df, "x", "z") ==
-    proptable(df, "x", :z)
-    proptable(df, :x, "z")
-@test tab == [0.25 0.25 0.0
-              0.25 0.0  0.25]
-@test names(tab) == [[1, 2], ["a", "c", "d"]]
+for cols in ((:x, :z), ("x", "z"), ("x", :z), (:x, "z"))
+    tab = proptable(df, cols...)
+    @test dimnames(tab) == all(x -> x isa AbstractString, cols) ? ["x", "z"] : [:x, :z]
+    @test tab == [0.25 0.25 0.0
+                  0.25 0.0  0.25]
+    @test names(tab) == [[1, 2], ["a", "c", "d"]]
+end
 
 tab = proptable(df, :x, :z, margins=1)
 @test tab == [0.5 0.5 0.0

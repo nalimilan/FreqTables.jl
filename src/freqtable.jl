@@ -194,7 +194,8 @@ freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
 function freqtable(t, cols::Union{Symbol, AbstractString}...; args...)
     all_cols = Tables.columns(t)
     a = freqtable((Tables.getcolumn(all_cols, Symbol(y)) for y in cols)...; args...)
-    setdimnames!(a, cols)
+    cols′ = all(x -> x isa AbstractString, cols) ? cols : Symbol.(cols)
+    setdimnames!(a, cols′)
     a
 end
 
