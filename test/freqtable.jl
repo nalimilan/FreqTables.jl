@@ -1,5 +1,6 @@
 using FreqTables
 using Test
+using NamedArrays
 
 x = repeat(["a", "b", "c", "d"], outer=[100]);
 # Values not in order to test discrepancy between index and levels with CategoricalArray
@@ -165,8 +166,11 @@ for docat in [false, true]
         @test tab == [2 3
                     0 5
                     1 6]
-        @test dimnames(tab) == all(x -> x isa AbstractString, cols) ?
-            ["Species", "LongSepal"] : [:Species, :LongSepal]
+        if all(x -> x isa AbstractString, cols)
+            @test dimnames(tab) == ["Species", "LongSepal"]
+        else
+            @test dimnames(tab) == [:Species, :LongSepal]
+        end
         @test names(tab) == [["Iris-setosa", "Iris-versicolor", "Iris-virginica"], [false, true]]
         @test (names(tab, 2) isa CategoricalArray) == docat
     end
@@ -209,7 +213,11 @@ df = DataFrame(x = [1, 2, 1, 2], y = [1, 1, 2, 2], z = ["a", "a", "c", "d"])
 
 for cols in ((:x, :z), ("x", "z"), ("x", :z), (:x, "z"))
     tab = proptable(df, cols...)
-    @test dimnames(tab) == all(x -> x isa AbstractString, cols) ? ["x", "z"] : [:x, :z]
+    if all(x -> x isa AbstractString, cols)
+        @test dimnames(tab) == ["x", "z"]
+    else
+        @test dimnames(tab) == [:x, :z]
+    end
     @test tab == [0.25 0.25 0.0
                   0.25 0.0  0.25]
     @test names(tab) == [[1, 2], ["a", "c", "d"]]
