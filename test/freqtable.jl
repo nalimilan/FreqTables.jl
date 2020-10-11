@@ -160,6 +160,9 @@ for docat in [false, true]
         iris.LongSepal = iris.SepalLength .> 5.0
     end
     tab = freqtable(iris, :Species, :LongSepal)
+    @test tab == freqtable(iris, "Species", "LongSepal") ==
+        freqtable(iris, "Species", :LongSepal) ==
+        freqtable(iris, :Species, "LongSepal")
     @test tab == [2 3
                   0 5
                   1 6]
@@ -203,6 +206,9 @@ intft = freqtable(df, :A, :B)
 df = DataFrame(x = [1, 2, 1, 2], y = [1, 1, 2, 2], z = ["a", "a", "c", "d"])
 
 tab = proptable(df, :x, :z)
+@test tab == proptable(df, "x", "z") ==
+    proptable(df, "x", :z)
+    proptable(df, :x, "z")
 @test tab == [0.25 0.25 0.0
               0.25 0.0  0.25]
 @test names(tab) == [[1, 2], ["a", "c", "d"]]

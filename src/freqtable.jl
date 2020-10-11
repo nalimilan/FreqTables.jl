@@ -87,7 +87,7 @@ end
               weights::AbstractVector{<:Real} = UnitWeights(),
               subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing])
 
-    freqtable(t, cols::Symbol...;
+    freqtable(t, cols::Union{Symbol, AbstractString}...;
               skipmissing::Bool = false,
               weights::AbstractVector{<:Real} = UnitWeights(),
               subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing])
@@ -191,9 +191,9 @@ freqtable(x::AbstractCategoricalVector...; skipmissing::Bool = false,
           subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing) =
     _freqtable(x, skipmissing, weights, subset)
 
-function freqtable(t, cols::Symbol...; args...)
+function freqtable(t, cols::Union{Symbol, AbstractString}...; args...)
     all_cols = Tables.columns(t)
-    a = freqtable((Tables.getcolumn(all_cols, y) for y in cols)...; args...)
+    a = freqtable((Tables.getcolumn(all_cols, Symbol(y)) for y in cols)...; args...)
     setdimnames!(a, cols)
     a
 end
@@ -286,7 +286,7 @@ prop(tbl::NamedArray{<:Number}; margins=nothing) =
               weights::AbstractVector{<:Real} = UnitWeights(),
               subset::Union{Nothing, AbstractVector{Int}, AbstractVector{Bool}} = nothing])
 
-    proptable(t, cols::Symbol...;
+    proptable(t, cols::Union{Symbol, AbstractString}...;
               margins = nothing,
               skipmissing::Bool = false,
               weights::AbstractVector{<:Real} = UnitWeights(),
@@ -404,5 +404,5 @@ proptable(x::AbstractVector...;
     prop(freqtable(x...,
                    skipmissing=skipmissing, weights=weights, subset=subset), margins=margins)
 
-proptable(t, cols::Symbol...; margins=nothing, kwargs...) =
+proptable(t, cols::Union{Symbol, AbstractString}...; margins=nothing, kwargs...) =
     prop(freqtable(t, cols...; kwargs...), margins=margins)
