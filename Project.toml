@@ -1,6 +1,6 @@
 name = "FreqTables"
 uuid = "da1fdf0e-e0ff-5433-a45f-9bb5ff651cb1"
-version = "0.4.0"
+version = "0.4.1"
 
 [deps]
 CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
