@@ -32,9 +32,7 @@ arbitrary_fun(x, y) = cor(x, y)
         @test typeof.(res) == [Float64 Float64
                                Float64 Float32]
 
-        # inference of cor fails so use an inferrable function
-        # to check that pairwise itself is inferrable
-        @inferred pairwise((x, y) -> x[1] * y[1], x, y)
+        @inferred pairwise(f, x, y)
 
         @test_throws ArgumentError pairwise(f, [Int[]], [Int[]])
     end
@@ -136,9 +134,7 @@ arbitrary_fun(x, y) = cor(x, y)
         @test names(res) == [["x", "y"], ["x", "z", "y"]]
 
         if T != DataFrame
-            # inference of cor fails so use an inferrable function
-            # to check that pairwise itself is inferrable
-            @inferred pairwise((x, y) -> x[1] * y[1], T((x=x, y=y)))
+            @inferred pairwise(f, T((x=x, y=y)))
         end
     end
 
