@@ -120,13 +120,6 @@ arbitrary_fun(x, y) = cor(x, y)
         @test_throws ArgumentError pairwise(f, x, y, symmetric=true)
     end
 
-    @testset "cor corner case" begin
-        res = pairwise(cor, [[1, 2, 3], [1, 5, 2]])
-        @test_broken res isa Matrix{Float64}
-        @test res == [cor(xi, yi) for xi in ([1, 2, 3], [1, 5, 2]),
-                                    yi in ([1, 2, 3], [1, 5, 2])]
-    end
-
     @testset "Tables method for $T" for T in (identity, DataFrame, Tables.rowtable)
         x = rand(10)
         y = rand(10)
@@ -146,6 +139,33 @@ arbitrary_fun(x, y) = cor(x, y)
             # inference of cor fails so use an inferrable function
             # to check that pairwise itself is inferrable
             @inferred pairwise((x, y) -> x[1] * y[1], T((x=x, y=y)))
+        end
+    end
+
+    @testset "cor corner cases" begin
+        # Integer inputs must give a Float64 output
+        res = pairwise(cor, [[1, 2, 3], [1, 5, 2]])
+        @test res isa Matrix{Float64}
+        @test res == [cor(xi, yi) for xi in ([1, 2, 3], [1, 5, 2]),
+                                      yi in ([1, 2, 3], [1, 5, 2])]
+
+        # NaNs are ignored for the diagonal
+        res = pairwise(cor, [[1, 2, NaN], [1, 5, 2]])
+        @test res isa Matrix{Float64}
+        @test res ≅ [1.0 NaN
+                     NaN 1.0]
+
+        # missings are propagated even for the diagonal
+        res = pairwise(cor, [[1, 2, 7], [1, 5, missing]])
+        @test res isa Matrix{Union{Float64, Missing}}
+        @test res ≅ [1.0 missing
+                     missing missing]
+
+        for sm in (:pairwise, :listwise)
+            res = pairwise(cor, [[1, 2, NaN, 4], [1, 5, 5, missing]], skipmissing=sm)
+            @test res isa Matrix{Float64}
+            @test res ≅ [1.0 NaN
+                        NaN 1.0]
         end
     end
 end

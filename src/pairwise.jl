@@ -2,7 +2,16 @@ function _pairwise!(::Val{:none}, res::AbstractMatrix, f, x, y, symmetric::Bool)
     m, n = size(res)
     for j in 1:n, i in 1:m
         symmetric && i > j && continue
-        res[i, j] = f(x[i], y[j])
+
+        # For performance, diagonal is special-cased
+        if f === cor && i == j && x[i] === y[j]
+            # If the type isn't concrete, 1 may not be converted to the right type
+            # and the final matrix will have an abstract eltype
+            # (missings are propagated via the second branch, but NaNs are ignored)
+            res[i, j] = isconcretetype(eltype(res)) ? 1 : one(f(x[i], y[j]))
+        else
+            res[i, j] = f(x[i], y[j])
+        end
     end
     if symmetric
         for j in 1:n, i in (j+1):m
@@ -19,14 +28,23 @@ function _pairwise!(::Val{:pairwise}, res::AbstractMatrix, f, x, y, symmetric::B
         for i in 1:m
             symmetric && i > j && continue
 
-            if x[i] === y[i]
-                xnm = ynm = view(y[j], ynminds)
+            if x[i] === y[j]
+                ynm = view(y[j], ynminds)
+                # For performance, diagonal is special-cased
+                if f === cor && i == j
+                    # If the type isn't concrete, 1 may not be converted to the right type
+                    # and the final matrix will have an abstract eltype
+                    # (missings and NaNs are ignored)
+                    res[i, j] = isconcretetype(eltype(res)) ? 1 : one(f(ynm, ynm))
+                else
+                    res[i, j] = f(ynm, ynm)
+                end
             else
                 nminds = .!ismissing.(x[i]) .& ynminds
                 xnm = view(x[i], nminds)
                 ynm = view(y[j], nminds)
+                res[i, j] = f(xnm, ynm)
             end
-            res[i, j] = f(xnm, ynm)
         end
     end
     if symmetric
@@ -141,6 +159,10 @@ Alternatively, if `x` and `y` are tables (in the Tables.jl sense), return
 a `NamedMatrix` holding the result of applying `f` to all possible pairs
 of columns in `x` and `y`.
 
+As a special case, if `f` is `cor`, diagonal cells are set to 1 even in
+the presence `NaN` or `Inf` entries (but `missing` is propagated unless
+`skipmissing` is different from `:none`).
+
 # Keyword arguments
 - `symmetric::Bool=false`: If `true`, `f` is only called to compute
   for the lower triangle of the matrix, and these values are copied
@@ -153,17 +175,9 @@ of columns in `x` and `y`.
   Use `:listwise` to skip entries with a `missing` value in any of the
   vectors in `x` or `y`; note that this is likely to drop a large part of
   entries.
-  If `f` is `cor`, diagonal values are set to 1 even in the presence
-  of `missing`, `NaN`, `Inf` entries.
 """
 pairwise(f, x, y=x; symmetric::Bool=false, skipmissing::Symbol=:none) =
     _pairwise_general(Val(skipmissing), f, x, y, symmetric)
-
-# cor(x) ensures 1 of the right type is returned for diagonal cells
-# (without actual computations)
-pairwise(::typeof(cor), x, y; symmetric::Bool=false, skipmissing::Symbol=:none) =
-    pairwise((x, y) -> x === y ? cor(x) : cor(x, y), x, y,
-             symmetric=symmetric, skipmissing=skipmissing)
 
 # cov(x) is faster than cov(x, x)
 pairwise(::typeof(cov), x, y; symmetric::Bool=false, skipmissing::Symbol=:none) =
