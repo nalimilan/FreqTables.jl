@@ -277,9 +277,6 @@ function prop(tbl::AbstractArray{<:Number,N}; margins=nothing) where N
     end
 end
 
-prop(tbl::NamedArray{<:Number}; margins=nothing) =
-    NamedArray(prop(convert(Array, tbl); margins=margins), tbl.dicts, tbl.dimnames)
-
 """
     proptable(x::AbstractVector...;
               margins = nothing,
