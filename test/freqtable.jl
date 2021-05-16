@@ -25,21 +25,28 @@ pt = @inferred prop(tab)
              0.075  0.05  0.05 0.075;
               0.05 0.075 0.075  0.05;
               0.05 0.075 0.075  0.05]
+@test names(pt) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
+
 pt = @inferred prop(tab, margins=2)
 @test pt == [0.3 0.2 0.2 0.3;
              0.3 0.2 0.2 0.3;
              0.2 0.3 0.3 0.2;
              0.2 0.3 0.3 0.2]
+@test names(pt) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
+
 pt = @inferred prop(tab, margins=1)
 @test pt == [0.3 0.2 0.2 0.3;
              0.3 0.2 0.2 0.3;
              0.2 0.3 0.3 0.2;
              0.2 0.3 0.3 0.2]
+@test names(pt) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
+
 pt = @inferred prop(tab, margins=(1, 2))
 @test pt == [1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0;
              1.0 1.0 1.0 1.0]
+@test names(pt) == [["a", "b", "c", "d"], ["A", "B", "C", "D"]]
 
 tbl = @inferred prop(rand(5, 5, 5, 5), margins=(1, 2))
 sumtbl = sum(tbl, dims=(3,4))

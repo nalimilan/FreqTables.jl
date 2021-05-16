@@ -273,7 +273,8 @@ function prop(tbl::AbstractArray{<:Number,N}; margins=nothing) where N
     else
         lo, hi = extrema(margins)
         (lo < 1 || hi > N) && throw(ArgumentError("margins must be a valid dimension"))
-        return tbl ./ sum(tbl, dims=tuple(setdiff(1:N, margins)...)::NTuple{N-length(margins),Int})
+        return tbl ./ sum(tbl isa NamedArray ? tbl.array : tbl,
+			  dims=tuple(setdiff(1:N, margins)...)::NTuple{N-length(margins),Int})
     end
 end
 
