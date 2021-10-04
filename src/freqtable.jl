@@ -125,7 +125,6 @@ x ╲ y │ 1  2
 
 ```
 """
-
 freqtable(x::AbstractVector...;
           skipmissing::Bool = false,
           weights::AbstractVector{<:Real} = UnitWeights(),
@@ -266,7 +265,6 @@ julia> sum(pt, dims=(1, 2))
 
 ```
 """
-
 function prop(tbl::AbstractArray{<:Number,N}; margins=nothing) where N
     if margins === nothing
         return tbl / sum(tbl)
